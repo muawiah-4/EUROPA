@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: -apple-system, "SF Pro Display", "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --void: #050506;
+  --panel: #0c0d10;
+  --elevated: #15161a;
+  --bone: #f2efe9;
+  --mist: #b8b6ae;
+  --smoke: #6b6a66;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--void);
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--bone);
+  overscroll-behavior-y: none;
+  font-feature-settings: "ss01" on;
+}
+
+::selection {
+  background: var(--bone);
+  color: var(--void);
+}
+
+:focus-visible {
+  outline: 1px solid var(--bone);
+  outline-offset: 3px;
+}
+
+/* Thin hairline used across the UI chrome — nav, progress rail, ghost buttons */
+.hairline {
+  border: 1px solid rgba(242, 239, 233, 0.18);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Utility: noise texture used sparingly as atmospheric grain over dark scenes */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 180px 180px;
+}

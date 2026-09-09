@@ -54,31 +54,18 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           style={{ background: "linear-gradient(180deg, rgba(5,5,6,0) 40%, rgba(5,5,6,0.55) 78%, rgba(5,5,6,0.92) 100%)" }}
         />
 
-        {/* Corner Telemetry Cluster — the destination's `info` rows, read as
-            HUD annotation next to the 3D model rather than stacked copy.
-            Anchored top-right: it's the one corner the masthead (top-left)
-            and the headline block (bottom-left) both leave free. */}
-        <div className="dest-hero-fade absolute right-6 top-20 z-10 flex flex-col items-end gap-3 text-right md:right-16 md:top-24 md:gap-4">
-          {destination.info.map((row) => (
-            <div key={row.label}>
-              <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">{row.label}</div>
-              <div className="mt-1 font-mono text-[12px] uppercase tracking-[0.08em] text-mist">{row.value}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-14 md:px-16 md:pb-20">
-          <div className="dest-hero-fade max-w-md">
-            <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.32em]" style={{ color: destination.accent }}>
+        <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-16 md:px-16 md:pb-24">
+          <div className="dest-hero-fade max-w-3xl">
+            <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.32em]" style={{ color: destination.accent }}>
               {destination.eyebrow}
             </div>
             <h1
-              className="text-balance font-display font-light leading-[0.94] tracking-[-0.03em] text-bone"
-              style={{ fontSize: "clamp(2.25rem, 6.5vw, 5rem)" }}
+              className="text-balance font-display font-light leading-[0.92] tracking-[-0.03em] text-bone"
+              style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
             >
               {destination.city}
             </h1>
-            <p className="mt-4 max-w-sm text-[14px] font-light leading-relaxed text-mist md:text-[15px]">
+            <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[17px]">
               {destination.tagline}
             </p>
           </div>

@@ -6,6 +6,7 @@ import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
 import ParisKineticWordmark from "@/components/ParisKineticWordmark";
+import VeniceKineticWordmark from "@/components/VeniceKineticWordmark";
 
 export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
@@ -56,6 +57,8 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
             </div>
             {destination.id === "paris" ? (
               <ParisKineticWordmark accent={destination.accent} />
+            ) : destination.id === "venice" ? (
+              <VeniceKineticWordmark accent={destination.accent} />
             ) : (
               <h1
                 className="text-balance font-display font-light leading-[0.92] tracking-[-0.03em] text-bone"

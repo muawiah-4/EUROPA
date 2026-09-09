@@ -6,6 +6,7 @@ import { LANDMARK_SHAPES } from "@/lib/landmarkShapes";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationLandmark from "@/components/three/DestinationLandmark";
+import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
 
 export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
@@ -41,10 +42,9 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
 
       {/* ---------- Hero ---------- */}
       <section className="relative h-[92vh] min-h-[620px] w-full overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{ background: `linear-gradient(180deg, ${destination.sky[0]} 0%, ${destination.sky[1]} 100%)` }}
-        />
+        <div className="absolute inset-0">
+          <DestinationGradientBackdrop sky={destination.sky} accent={destination.accent} />
+        </div>
         <AtmosphereParticles kind={destination.atmosphere} />
         <div className="absolute inset-0">
           {landmarkShapes ? <DestinationLandmark shapes={landmarkShapes} accent={destination.accent} /> : null}

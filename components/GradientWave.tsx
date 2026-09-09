@@ -353,7 +353,7 @@ ${fields}
   }
 }
 
-class Gradient {
+export class Gradient {
   canvas: HTMLCanvasElement;
   colors: string[];
   minigl: MiniGl;
@@ -363,10 +363,29 @@ class Gradient {
   animationId?: number;
   isPlaying = false;
 
+  // prefers-reduced-motion support — same matchMedia + change-listener idiom
+  // as GlobeHero/FloatingLandmark (components/three/*.tsx). Read on
+  // construction and kept live via the change listener so an in-session OS
+  // preference flip is honored immediately.
+  reducedMotion = false;
+  reducedMotionQuery?: MediaQueryList;
+  handleReducedMotionChange = (e: MediaQueryListEvent): void => {
+    this.reducedMotion = e.matches;
+  };
+
+  // Stable reference to the resize handler so it can actually be removed in
+  // stop() — see stop() for why this matters.
+  handleResize = (): void => this.resize();
+
   constructor(canvas: HTMLCanvasElement, colors: string[]) {
     this.canvas = canvas;
     this.colors = colors;
     this.minigl = new MiniGl(canvas);
+
+    this.reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.reducedMotion = this.reducedMotionQuery.matches;
+    this.reducedMotionQuery.addEventListener("change", this.handleReducedMotionChange);
+
     this.init();
   }
 
@@ -520,7 +539,12 @@ void main() {
   vec3 color = v_color;
   if (u_darken_top == 1.0) {
     vec2 st = gl_FragCoord.xy/resolution.xy;
-    color.g -= pow(st.y + sin(-12.0) * st.x, u_shadow_power) * 0.4;
+    // pow() is undefined in GLSL for a negative base, and st.y + sin(-12.0)*st.x
+    // does go negative across part of the frame — left unclamped, that produced
+    // driver-dependent garbage (a saturated, off-palette color blotch on some
+    // GPUs) instead of a subtle top-edge darkening.
+    float shadowBase = max(0.0, st.y + sin(-12.0) * st.x);
+    color.g -= pow(shadowBase, u_shadow_power) * 0.4;
   }
   gl_FragColor = vec4(color, 1.0);
 }`;
@@ -530,7 +554,7 @@ void main() {
     this.mesh = new this.minigl.Mesh(geometry, material);
 
     this.resize();
-    window.addEventListener("resize", () => this.resize());
+    window.addEventListener("resize", this.handleResize);
   }
 
   resize(): void {
@@ -548,8 +572,18 @@ void main() {
 
   animate = (timestamp: number): void => {
     if (!this.isPlaying) return;
-    this.time += Math.min(timestamp - this.last, 1000 / 15);
+    const delta = Math.min(timestamp - this.last, 1000 / 15);
     this.last = timestamp;
+    // MOTION THAT ASKS FIRST: under prefers-reduced-motion, freeze the noise
+    // animation instead of advancing u_time — the mesh holds as a static
+    // frame rather than churning at full speed. The render loop itself
+    // keeps running (not just gated off) so setColors()/resize() — driven
+    // by scroll position in JourneyGradientStage, not by this animation —
+    // still repaint immediately instead of going stale until motion
+    // preference is turned back off.
+    if (!this.reducedMotion) {
+      this.time += delta;
+    }
     this.mesh.material.uniforms.u_time.value = this.time;
     this.minigl.render();
     this.animationId = requestAnimationFrame(this.animate);
@@ -564,6 +598,28 @@ void main() {
     this.isPlaying = false;
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
+    }
+    // Undo everything init()/the constructor wired up to window — without
+    // this, every Gradient this process tears down (GradientWave recreates
+    // one on every colors/isPlaying/shadowPower/darkenTop/noiseSpeed/
+    // noiseFrequency/deform prop change, per its effect dependency array)
+    // leaves a resize listener and a reduced-motion listener permanently
+    // attached to window, each closing over a now-detached canvas/GL
+    // context/Gradient instance that can then never be garbage collected.
+    window.removeEventListener("resize", this.handleResize);
+    this.reducedMotionQuery?.removeEventListener("change", this.handleReducedMotionChange);
+  }
+
+  // Mutates the existing uniform values in place instead of rebuilding the
+  // WebGL program — used by JourneyGradientStage to swap palettes as the
+  // active destination changes on scroll without a context-recreate stall
+  // or a blank-canvas flash between destinations.
+  setColors(colors: string[]): void {
+    const sectionColors = colors.map((hex) => normalizeColor(parseInt(hex.replace("#", "0x"), 16)));
+    this.mesh.material.uniforms.u_baseColor.value = sectionColors[0];
+    const layers = this.mesh.material.uniforms.u_waveLayers.value as { value: { color: { value: number[] } } }[];
+    for (let i = 1; i < sectionColors.length && i - 1 < layers.length; i++) {
+      layers[i - 1].value.color.value = sectionColors[i];
     }
   }
 }

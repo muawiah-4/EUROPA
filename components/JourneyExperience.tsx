@@ -16,6 +16,7 @@ import InteractiveMap from "@/components/InteractiveMap";
 import EndSequence from "@/components/EndSequence";
 import HeroTitle from "@/components/HeroTitle";
 import HeroGradientBackdrop from "@/components/HeroGradientBackdrop";
+import JourneyGradientStage from "@/components/JourneyGradientStage";
 
 // React Three Fiber touches the DOM/WebGL context — must stay client-only,
 // never evaluated during SSR.
@@ -61,6 +62,8 @@ export default function JourneyExperience() {
           layer and a landmark nested inside just one of them couldn't sit
           consistently between the other seven's backgrounds and foregrounds.
         */}
+        <JourneyGradientStage progress={scrollYProgress} />
+
         {DESTINATIONS.map((d) => (
           <ChapterBackgroundLayer key={d.id} destination={d} progress={scrollYProgress} />
         ))}

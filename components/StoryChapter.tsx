@@ -41,12 +41,12 @@ export function useChapterOpacity(
 export const TEXT_HALF_WIDTH = 0.004;
 
 export function StoryChapterBackground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
+  // The flat linear-gradient sky div that used to live here is gone — the
+  // homepage's shared JourneyGradientStage now paints the animated
+  // equivalent underneath every chapter (see JourneyExperience.tsx), so
+  // this layer is just the particle atmosphere on top of it.
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
-      <div
-        className="absolute inset-0"
-        style={{ background: `linear-gradient(180deg, ${destination.sky[0]} 0%, ${destination.sky[1]} 100%)` }}
-      />
       <AtmosphereParticles kind={destination.atmosphere} />
     </motion.div>
   );

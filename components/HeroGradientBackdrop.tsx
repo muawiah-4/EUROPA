@@ -28,13 +28,24 @@ export default function HeroGradientBackdrop({
 
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
+      {/*
+        Reused from the original 5-stop palette (no new hues), trimmed to 3:
+        void base + a single warm-ember layer + a near-void layer. Fewer
+        wave layers reads as a slow ember glow instead of a busy multi-tone
+        wash — and HeroTitle sits centered with zero scrim over this canvas,
+        so restraint here is what keeps EXPLORE BEYOND THE MAP legible.
+
+        No `darkenTop`: its shadow term only subtracts from the green
+        channel, which is invisible on this warm near-black palette (all
+        three colors here have negligible blue) but produces a genuine
+        magenta artifact on any color with real blue+red content — see the
+        same removal in DestinationGradientBackdrop.tsx.
+      */}
       <GradientWave
-        colors={["#050506", "#1d160c", "#050506", "#241a0e", "#0a0806"]}
-        shadowPower={10}
-        darkenTop
-        noiseSpeed={0.000006}
-        noiseFrequency={[0.00012, 0.0004]}
-        deform={{ incline: 0.32, noiseAmp: 130, noiseFlow: 3.2, offsetTop: -0.5, offsetBottom: -0.5 }}
+        colors={["#050506", "#1d160c", "#0a0806"]}
+        noiseSpeed={0.0000035}
+        noiseFrequency={[0.0001, 0.00028]}
+        deform={{ incline: 0.18, noiseAmp: 75, noiseFlow: 1.8, offsetTop: -0.5, offsetBottom: -0.5 }}
       />
     </motion.div>
   );

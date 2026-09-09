@@ -15,6 +15,7 @@ import ProgressRail from "@/components/ProgressRail";
 import InteractiveMap from "@/components/InteractiveMap";
 import EndSequence from "@/components/EndSequence";
 import HeroTitle from "@/components/HeroTitle";
+import HeroGradientBackdrop from "@/components/HeroGradientBackdrop";
 
 // React Three Fiber touches the DOM/WebGL context — must stay client-only,
 // never evaluated during SSR.
@@ -44,6 +45,7 @@ export default function JourneyExperience() {
   return (
     <div ref={containerRef} style={{ height: `${JOURNEY_LENGTH_VH}vh` }} className="relative bg-void">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
+        <HeroGradientBackdrop progress={scrollYProgress} heroEnd={JOURNEY_MARKS.heroEnd} />
         <GlobeHero progress={scrollYProgress} />
         <HeroTitle progress={scrollYProgress} heroEnd={JOURNEY_MARKS.heroEnd} />
         <CloudDescent progress={scrollYProgress} range={[JOURNEY_MARKS.heroEnd - 0.02, JOURNEY_MARKS.descentEnd]} />

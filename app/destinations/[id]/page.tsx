@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -5,8 +6,29 @@ import { DESTINATIONS, getDestinationById } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
+import DestinationSpecimenFrame from "@/components/DestinationSpecimenFrame";
 import ParisKineticWordmark from "@/components/ParisKineticWordmark";
+import RomeKineticWordmark from "@/components/RomeKineticWordmark";
+import SantoriniKineticWordmark from "@/components/SantoriniKineticWordmark";
 import VeniceKineticWordmark from "@/components/VeniceKineticWordmark";
+import AlpsKineticWordmark from "@/components/AlpsKineticWordmark";
+import LondonKineticWordmark from "@/components/LondonKineticWordmark";
+import BarcelonaKineticWordmark from "@/components/BarcelonaKineticWordmark";
+import AmsterdamKineticWordmark from "@/components/AmsterdamKineticWordmark";
+
+// One kinetic wordmark per destination — each a genuinely different
+// mechanism (see the individual component files), never a 3D object or a
+// drawing of a landmark. Looked up by id rather than a long if/else chain.
+const KINETIC_WORDMARKS: Record<string, ComponentType<{ accent: string }>> = {
+  paris: ParisKineticWordmark,
+  rome: RomeKineticWordmark,
+  santorini: SantoriniKineticWordmark,
+  venice: VeniceKineticWordmark,
+  alps: AlpsKineticWordmark,
+  london: LondonKineticWordmark,
+  barcelona: BarcelonaKineticWordmark,
+  amsterdam: AmsterdamKineticWordmark,
+};
 
 export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
@@ -27,6 +49,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
 
   const currentIndex = DESTINATIONS.findIndex((d) => d.id === destination.id);
   const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
+  const KineticWordmark = KINETIC_WORDMARKS[destination.id];
 
   return (
     <main className="bg-void">
@@ -50,15 +73,15 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           style={{ background: "linear-gradient(180deg, rgba(5,5,6,0) 40%, rgba(5,5,6,0.55) 78%, rgba(5,5,6,0.92) 100%)" }}
         />
 
+        <DestinationSpecimenFrame destination={destination} />
+
         <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-16 md:px-16 md:pb-24">
           <div className="dest-hero-fade max-w-3xl">
             <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.32em]" style={{ color: destination.accent }}>
               {destination.eyebrow}
             </div>
-            {destination.id === "paris" ? (
-              <ParisKineticWordmark accent={destination.accent} />
-            ) : destination.id === "venice" ? (
-              <VeniceKineticWordmark accent={destination.accent} />
+            {KineticWordmark ? (
+              <KineticWordmark accent={destination.accent} />
             ) : (
               <h1
                 className="text-balance font-display font-light leading-[0.92] tracking-[-0.03em] text-bone"

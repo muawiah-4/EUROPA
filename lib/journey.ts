@@ -23,6 +23,8 @@ export type Destination = {
   atmosphere: AtmosphereKind;
   sky: [string, string]; // gradient stops, top -> bottom
   accent: string; // single chapter accent used sparingly (label glow, hairline tint)
+  /** Real-world coordinates, decimal degrees — used by the detail-page specimen stamp */
+  coordinates: { lat: number; lon: number };
   /** Relative pacing — mirrors "sound-inspired visual rhythm" from the brief */
   pace: "slow" | "medium" | "brisk";
 
@@ -71,6 +73,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "gold-dust",
     sky: ["#241a12", "#1a1210"],
     accent: "#e8c07a",
+    coordinates: { lat: 48.8566, lon: 2.3522 },
     pace: "slow",
     tagline: "The city that invented looking effortless.",
     overview:
@@ -104,6 +107,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "warm-haze",
     sky: ["#231a12", "#160f0c"],
     accent: "#d99a5b",
+    coordinates: { lat: 41.9028, lon: 12.4964 },
     pace: "slow",
     tagline: "Where every layer is a different century.",
     overview:
@@ -137,6 +141,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "sun-glint",
     sky: ["#12232c", "#0a161d"],
     accent: "#5fb8d6",
+    coordinates: { lat: 36.3932, lon: 25.4615 },
     pace: "brisk",
     tagline: "An island built to face the sunset.",
     overview:
@@ -170,6 +175,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "mist-shimmer",
     sky: ["#16232a", "#0d161b"],
     accent: "#7fb0ad",
+    coordinates: { lat: 45.4408, lon: 12.3155 },
     pace: "slow",
     tagline: "A city that chose water over roads.",
     overview:
@@ -203,6 +209,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "snowfall",
     sky: ["#1a2129", "#0e1318"],
     accent: "#c9d6dd",
+    coordinates: { lat: 46.6863, lon: 7.8632 },
     pace: "slow",
     tagline: "Scale that resets your sense of size.",
     overview:
@@ -236,6 +243,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "rain-fog",
     sky: ["#171b22", "#0e1015"],
     accent: "#e0a94a",
+    coordinates: { lat: 51.5074, lon: -0.1278 },
     pace: "brisk",
     tagline: "Centuries of stone under a sky that won't commit.",
     overview:
@@ -269,6 +277,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "warm-drift",
     sky: ["#231a14", "#170f0d"],
     accent: "#e0855a",
+    coordinates: { lat: 41.3851, lon: 2.1734 },
     pace: "medium",
     tagline: "A skyline shaped by one imagination.",
     overview:
@@ -302,6 +311,7 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "dusk-mist",
     sky: ["#1a1720", "#100e15"],
     accent: "#b98fd1",
+    coordinates: { lat: 52.3676, lon: 4.9041 },
     pace: "medium",
     tagline: "A city that leans in to listen.",
     overview:

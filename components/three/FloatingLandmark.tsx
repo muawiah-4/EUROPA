@@ -248,14 +248,23 @@ export default function FloatingLandmark({
   shapes,
   accent,
   interactive = true,
+  cameraPosition = [0, -0.1, 6.2],
+  fov = 36,
 }: {
   shapes: LandmarkShape;
   accent: string;
   interactive?: boolean;
+  // Both default to the original card/homepage framing. DestinationLandmark
+  // (the detail-page hero) passes a closer, narrower-fov override so the
+  // same recipe reads as full-viewport central imagery there, per
+  // DESIGN_LANDMARKS.md's "Full-Viewport 3D Hero Artifact" spec — nothing
+  // else about the camera, lighting, or material changes between contexts.
+  cameraPosition?: [number, number, number];
+  fov?: number;
 }) {
   return (
     <div className="absolute inset-0" style={interactive ? { touchAction: "none" } : undefined}>
-      <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: [0, -0.1, 6.2], fov: 36 }}>
+      <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: cameraPosition, fov }}>
         <ambientLight intensity={0.3} />
         <directionalLight position={[3, 4, 3]} intensity={0.85} color="#f2e6cf" />
         <directionalLight position={[-3, -1, -2]} intensity={0.08} color="#3a3e44" />

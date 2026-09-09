@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 const CRAFT_ITEMS: { label: string; value: string }[] = [
   {
-    label: "LANDMARKS",
-    value: "Abstracted 3D sculptures built from primitive geometry, one shape recipe per destination — no models, no photography.",
+    label: "TYPOGRAPHY",
+    value: "Each city's own name is the landmark — a restrained, place-specific motion instead of a drawn or modeled object. No models, no photography.",
   },
   {
     label: "ATMOSPHERE",
@@ -103,13 +103,14 @@ export default function AboutPage() {
           </h2>
 
           <p className="mt-7 text-[15px] font-light leading-relaxed text-mist">
-            There&rsquo;s no real photography anywhere on this site, and no licensed 3D landmark models — that
-            wasn&rsquo;t a corner cut, it was the brief. Every landmark you scroll past, drag, and tilt is a
-            dimensional sculpture built from primitive geometry — cones, boxes, tori — lit with the same
-            fresnel rim-light technique as the globe, one shape recipe per destination. Every wisp of light
-            or fog is a procedural particle-atmosphere system with its own recipe per place. The globe in
-            the opening scene is a custom-shaded WebGL sphere, built from scratch rather than sourced from
-            a library.
+            There&rsquo;s no real photography anywhere on this site, and no landmark models or drawings —
+            that wasn&rsquo;t a corner cut, it was the brief. Every destination&rsquo;s name carries its own
+            restrained kinetic signature instead of an object standing in for the place: a slow gold sweep
+            for Paris, a canal ripple for Venice, deliberate stillness for Rome — real typography, never an
+            image. A small specimen frame sits around it — corner brackets, real coordinates, a plate
+            number — giving the page structure without drawing anything. Every wisp of light or fog is a
+            procedural particle-atmosphere system with its own recipe per place. The globe in the opening
+            scene is a custom-shaded WebGL sphere, built from scratch rather than sourced from a library.
           </p>
 
           <p className="mt-5 text-[15px] font-light leading-relaxed text-mist">

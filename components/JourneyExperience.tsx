@@ -4,35 +4,22 @@ import dynamic from "next/dynamic";
 import { useCallback, useRef } from "react";
 import { useScroll } from "framer-motion";
 import { DESTINATIONS, JOURNEY_LENGTH_VH, JOURNEY_MARKS } from "@/lib/journey";
-import StoryChapter, { useChapterOpacity } from "@/components/StoryChapter";
+import {
+  StoryChapterBackground,
+  StoryChapterForeground,
+  useChapterOpacity,
+  TEXT_HALF_WIDTH,
+} from "@/components/StoryChapter";
 import CloudDescent from "@/components/CloudDescent";
 import ProgressRail from "@/components/ProgressRail";
 import InteractiveMap from "@/components/InteractiveMap";
 import EndSequence from "@/components/EndSequence";
 import HeroTitle from "@/components/HeroTitle";
-import ParisScene from "@/components/scenes/ParisScene";
-import RomeScene from "@/components/scenes/RomeScene";
-import SantoriniScene from "@/components/scenes/SantoriniScene";
-import VeniceScene from "@/components/scenes/VeniceScene";
-import AlpsScene from "@/components/scenes/AlpsScene";
-import LondonScene from "@/components/scenes/LondonScene";
-import BarcelonaScene from "@/components/scenes/BarcelonaScene";
-import AmsterdamScene from "@/components/scenes/AmsterdamScene";
 
 // React Three Fiber touches the DOM/WebGL context — must stay client-only,
 // never evaluated during SSR.
 const GlobeHero = dynamic(() => import("@/components/three/GlobeHero"), { ssr: false });
-
-const LANDMARKS: Record<string, React.ComponentType> = {
-  paris: ParisScene,
-  rome: RomeScene,
-  santorini: SantoriniScene,
-  venice: VeniceScene,
-  alps: AlpsScene,
-  london: LondonScene,
-  barcelona: BarcelonaScene,
-  amsterdam: AmsterdamScene,
-};
+const JourneyLandmarkStage = dynamic(() => import("@/components/three/JourneyLandmarkStage"), { ssr: false });
 
 export default function JourneyExperience() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,17 +48,26 @@ export default function JourneyExperience() {
         <HeroTitle progress={scrollYProgress} heroEnd={JOURNEY_MARKS.heroEnd} />
         <CloudDescent progress={scrollYProgress} range={[JOURNEY_MARKS.heroEnd - 0.02, JOURNEY_MARKS.descentEnd]} />
 
-        {DESTINATIONS.map((d) => {
-          const Landmark = LANDMARKS[d.id];
-          return (
-            <ChapterLayer
-              key={d.id}
-              destination={d}
-              progress={scrollYProgress}
-              landmark={Landmark ? <Landmark /> : null}
-            />
-          );
-        })}
+        {/*
+          Chapters are split into background (sky + atmosphere particles)
+          and foreground (typography) layers, with the single shared 3D
+          landmark canvas sandwiched between the two loops below. That
+          ordering — backgrounds, then landmark, then all typography — is
+          what puts the landmark "above the sky gradient and atmosphere
+          particles but below the typography" across all eight chapters,
+          since each chapter is otherwise an independently crossfading
+          layer and a landmark nested inside just one of them couldn't sit
+          consistently between the other seven's backgrounds and foregrounds.
+        */}
+        {DESTINATIONS.map((d) => (
+          <ChapterBackgroundLayer key={d.id} destination={d} progress={scrollYProgress} />
+        ))}
+
+        <JourneyLandmarkStage progress={scrollYProgress} />
+
+        {DESTINATIONS.map((d) => (
+          <ChapterForegroundLayer key={d.id} destination={d} progress={scrollYProgress} />
+        ))}
 
         <InteractiveMap progress={scrollYProgress} onSelect={scrollToFraction} />
         <EndSequence progress={scrollYProgress} onRestart={restart} />
@@ -82,21 +78,27 @@ export default function JourneyExperience() {
   );
 }
 
-function ChapterLayer({
+function ChapterBackgroundLayer({
   destination,
   progress,
-  landmark,
 }: {
   destination: (typeof DESTINATIONS)[number];
   progress: ReturnType<typeof useScroll>["scrollYProgress"];
-  landmark: React.ReactNode;
 }) {
   // Every destination fades in AND out — none of the 8 chapters are the
   // true start/end of the page (the globe hero precedes Paris, the map and
   // outro follow Amsterdam), so this always uses the full crossfade curve.
-  // Passing isFirst/isLast here previously clamped Paris to opacity 1 for
-  // the entire hero + cloud-descent phase (0 to 0.14) instead of fading in
-  // at its own range start — a real bug, not just a taste call.
   const opacity = useChapterOpacity(progress, destination.range, false, false);
-  return <StoryChapter destination={destination} opacity={opacity} landmark={landmark} />;
+  return <StoryChapterBackground destination={destination} opacity={opacity} />;
+}
+
+function ChapterForegroundLayer({
+  destination,
+  progress,
+}: {
+  destination: (typeof DESTINATIONS)[number];
+  progress: ReturnType<typeof useScroll>["scrollYProgress"];
+}) {
+  const opacity = useChapterOpacity(progress, destination.range, false, false, TEXT_HALF_WIDTH);
+  return <StoryChapterForeground destination={destination} opacity={opacity} />;
 }

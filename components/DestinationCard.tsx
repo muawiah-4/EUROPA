@@ -1,28 +1,59 @@
-import Link from "next/link";
-import type { Destination } from "@/lib/journey";
-import AtmosphereParticles from "@/components/AtmosphereParticles";
-import ParisScene from "@/components/scenes/ParisScene";
-import RomeScene from "@/components/scenes/RomeScene";
-import SantoriniScene from "@/components/scenes/SantoriniScene";
-import VeniceScene from "@/components/scenes/VeniceScene";
-import AlpsScene from "@/components/scenes/AlpsScene";
-import LondonScene from "@/components/scenes/LondonScene";
-import BarcelonaScene from "@/components/scenes/BarcelonaScene";
-import AmsterdamScene from "@/components/scenes/AmsterdamScene";
+"use client";
 
-const SCENES: Record<string, () => JSX.Element> = {
-  paris: ParisScene,
-  rome: RomeScene,
-  santorini: SantoriniScene,
-  venice: VeniceScene,
-  alps: AlpsScene,
-  london: LondonScene,
-  barcelona: BarcelonaScene,
-  amsterdam: AmsterdamScene,
-};
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import type { Destination } from "@/lib/journey";
+import { LANDMARK_SHAPES } from "@/lib/landmarkShapes";
+import AtmosphereParticles from "@/components/AtmosphereParticles";
+
+// Client-only: this card renders inside a server-rendered grid
+// (app/destinations/page.tsx), and the WebGL canvas must never run on the
+// server.
+const FloatingLandmark = dynamic(() => import("@/components/three/FloatingLandmark"), { ssr: false });
+
+/**
+ * Mounts the 3D landmark canvas only once the card scrolls near the
+ * viewport. /destinations renders 8 cards at once — mounting 8 live WebGL
+ * canvases simultaneously would be a real performance risk, so each card's
+ * canvas stays unmounted (just the sky gradient + particles showing)
+ * until it's actually about to be seen.
+ */
+function LazyLandmarkArt({ destination }: { destination: Destination }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) return;
+    const el = hostRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible]);
+
+  const shapes = LANDMARK_SHAPES[destination.id];
+
+  return (
+    <div ref={hostRef} className="absolute inset-0">
+      {visible && shapes ? <FloatingLandmark shapes={shapes} accent={destination.accent} interactive={false} /> : null}
+    </div>
+  );
+}
 
 export default function DestinationCard({ destination }: { destination: Destination }) {
-  const Scene = SCENES[destination.id];
   const number = String(destination.index).padStart(2, "0");
 
   return (
@@ -36,11 +67,9 @@ export default function DestinationCard({ destination }: { destination: Destinat
         className="relative h-64 overflow-hidden sm:h-72 lg:h-80"
         style={{ background: `linear-gradient(180deg, ${destination.sky[0]}, ${destination.sky[1]})` }}
       >
-        {Scene ? (
-          <div className="absolute inset-0 transition-transform duration-[1200ms] ease-out group-hover:scale-[1.06]">
-            <Scene />
-          </div>
-        ) : null}
+        <div className="absolute inset-0 transition-transform duration-[1200ms] ease-out group-hover:scale-[1.06]">
+          <LazyLandmarkArt destination={destination} />
+        </div>
 
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <AtmosphereParticles kind={destination.atmosphere} />

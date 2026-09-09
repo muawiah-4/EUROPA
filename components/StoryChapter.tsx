@@ -1,63 +1,60 @@
 "use client";
 
 import { motion, useTransform, type MotionValue } from "framer-motion";
-import type { ReactNode } from "react";
 import type { Destination } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
 /**
- * One destination's full-viewport stage: gradient sky, atmosphere particles,
- * a landmark slot (each destination supplies its own silhouette/composition
- * as children), and the whisper-weight typography overlay. Opacity is driven
- * by a shared crossfade window centered on the chapter's own scroll
- * boundary, the same fix applied on the PRX project — see the boundary math
- * below: without it, adjacent chapters both hit near-zero opacity right at
- * their shared edge instead of dissolving into one another.
+ * One destination's full-viewport stage, split into two pieces so the
+ * homepage's single shared 3D landmark canvas (JourneyLandmarkStage) can be
+ * mounted once, between all eight chapters' backgrounds and all eight
+ * chapters' typography, and still land in the correct visual stack order:
+ * sky + atmosphere (this file's Background) -> landmark -> typography
+ * (this file's Foreground). Previously this was one component that also
+ * rendered a per-chapter flat-SVG `landmark` prop in between; that prop is
+ * gone — see components/three/JourneyLandmarkStage.tsx.
+ *
+ * Opacity is driven by a shared crossfade window centered on the chapter's
+ * own scroll boundary, the same fix applied on the PRX project — see the
+ * boundary math below: without it, adjacent chapters both hit near-zero
+ * opacity right at their shared edge instead of dissolving into one
+ * another.
  */
 export function useChapterOpacity(
   progress: MotionValue<number>,
   range: [number, number],
   isFirst: boolean,
-  isLast: boolean
+  isLast: boolean,
+  halfWidth?: number
 ) {
   const [s, e] = range;
-  const hw = Math.min(0.018, (e - s) / 4);
+  const hw = halfWidth ?? Math.min(0.018, (e - s) / 4);
   if (isFirst) return useTransform(progress, [s, e - hw, e + hw], [1, 1, 0]);
   if (isLast) return useTransform(progress, [s - hw, s + hw, e], [0, 1, 1]);
   return useTransform(progress, [s - hw, s + hw, e - hw, e + hw], [0, 1, 1, 0]);
 }
 
-export default function StoryChapter({
-  destination,
-  opacity,
-  landmark,
-}: {
-  destination: Destination;
-  opacity: MotionValue<number>;
-  landmark: ReactNode;
-}) {
-  const blur = useTransform(opacity, [0, 1], [6, 0]);
-  const scale = useTransform(opacity, [0, 1], [1.03, 1]);
+// Headline/copy sits in the same fixed screen position across every
+// chapter, so the wide dissolve window that looks good on the sky/particle
+// background reads as two overlapping, competing headlines on text. Text
+// gets its own much narrower crossfade so the swap stays crisp and legible.
+export const TEXT_HALF_WIDTH = 0.004;
 
+export function StoryChapterBackground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
   return (
-    <motion.div
-      style={{ opacity }}
-      className="absolute inset-0"
-      aria-hidden={false}
-    >
-      {/* Sky */}
+    <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
       <div
         className="absolute inset-0"
         style={{ background: `linear-gradient(180deg, ${destination.sky[0]} 0%, ${destination.sky[1]} 100%)` }}
       />
       <AtmosphereParticles kind={destination.atmosphere} />
+    </motion.div>
+  );
+}
 
-      {/* Landmark composition, gently blurred/scaled during crossfade for depth */}
-      <motion.div style={{ filter: useTransform(blur, (b) => `blur(${b}px)`), scale }} className="absolute inset-0">
-        {landmark}
-      </motion.div>
-
-      {/* Typography */}
+export function StoryChapterForeground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
+  return (
+    <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden={false}>
       <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-16 md:px-16 md:pb-24">
         <div className="max-w-3xl">
           <div

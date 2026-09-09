@@ -2,27 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DESTINATIONS, getDestinationById } from "@/lib/journey";
+import { LANDMARK_SHAPES } from "@/lib/landmarkShapes";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
-import ParisScene from "@/components/scenes/ParisScene";
-import RomeScene from "@/components/scenes/RomeScene";
-import SantoriniScene from "@/components/scenes/SantoriniScene";
-import VeniceScene from "@/components/scenes/VeniceScene";
-import AlpsScene from "@/components/scenes/AlpsScene";
-import LondonScene from "@/components/scenes/LondonScene";
-import BarcelonaScene from "@/components/scenes/BarcelonaScene";
-import AmsterdamScene from "@/components/scenes/AmsterdamScene";
-
-const LANDMARKS: Record<string, React.ComponentType> = {
-  paris: ParisScene,
-  rome: RomeScene,
-  santorini: SantoriniScene,
-  venice: VeniceScene,
-  alps: AlpsScene,
-  london: LondonScene,
-  barcelona: BarcelonaScene,
-  amsterdam: AmsterdamScene,
-};
+import DestinationLandmark from "@/components/three/DestinationLandmark";
 
 export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
@@ -43,7 +26,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
 
   const currentIndex = DESTINATIONS.findIndex((d) => d.id === destination.id);
   const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
-  const Landmark = LANDMARKS[destination.id];
+  const landmarkShapes = LANDMARK_SHAPES[destination.id];
 
   return (
     <main className="bg-void">
@@ -63,7 +46,9 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           style={{ background: `linear-gradient(180deg, ${destination.sky[0]} 0%, ${destination.sky[1]} 100%)` }}
         />
         <AtmosphereParticles kind={destination.atmosphere} />
-        <div className="absolute inset-0">{Landmark ? <Landmark /> : null}</div>
+        <div className="absolute inset-0">
+          {landmarkShapes ? <DestinationLandmark shapes={landmarkShapes} accent={destination.accent} /> : null}
+        </div>
         <div
           className="absolute inset-0"
           style={{ background: "linear-gradient(180deg, rgba(5,5,6,0) 40%, rgba(5,5,6,0.55) 78%, rgba(5,5,6,0.92) 100%)" }}

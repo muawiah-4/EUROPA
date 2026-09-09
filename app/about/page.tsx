@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DESTINATIONS } from "@/lib/journey";
 import SiteFooter from "@/components/SiteFooter";
+import GhostHeading from "@/components/GhostHeading";
 
 export const metadata: Metadata = {
   title: "About — Europe",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 const CRAFT_ITEMS: { label: string; value: string }[] = [
   {
     label: "LANDMARKS",
-    value: "Hand-authored SVG silhouettes, drawn and tuned one destination at a time.",
+    value: "Abstracted 3D sculptures built from primitive geometry, one shape recipe per destination — no models, no photography.",
   },
   {
     label: "ATMOSPHERE",
@@ -65,7 +66,11 @@ export default function AboutPage() {
           />
         </div>
 
-        <div className="mx-auto max-w-3xl">
+        <GhostHeading align="left" className="-top-4 opacity-60 md:top-0">
+          ABOUT
+        </GhostHeading>
+
+        <div className="relative mx-auto max-w-3xl">
           <div className="font-mono text-[11px] uppercase tracking-[0.32em] text-mist">About</div>
 
           <h1
@@ -99,10 +104,12 @@ export default function AboutPage() {
 
           <p className="mt-7 text-[15px] font-light leading-relaxed text-mist">
             There&rsquo;s no real photography anywhere on this site, and no licensed 3D landmark models — that
-            wasn&rsquo;t a corner cut, it was the brief. Every landmark you scroll past is a hand-authored SVG
-            silhouette, drawn and tuned destination by destination. Every wisp of light or fog is a
-            procedural particle-atmosphere system with its own recipe per place. The globe in the opening
-            scene is a custom-shaded WebGL sphere, built from scratch rather than sourced from a library.
+            wasn&rsquo;t a corner cut, it was the brief. Every landmark you scroll past, drag, and tilt is a
+            dimensional sculpture built from primitive geometry — cones, boxes, tori — lit with the same
+            fresnel rim-light technique as the globe, one shape recipe per destination. Every wisp of light
+            or fog is a procedural particle-atmosphere system with its own recipe per place. The globe in
+            the opening scene is a custom-shaded WebGL sphere, built from scratch rather than sourced from
+            a library.
           </p>
 
           <p className="mt-5 text-[15px] font-light leading-relaxed text-mist">

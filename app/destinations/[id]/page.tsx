@@ -2,10 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DESTINATIONS, getDestinationById } from "@/lib/journey";
-import { LANDMARK_SHAPES } from "@/lib/landmarkShapes";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
-import DestinationLandmark from "@/components/three/DestinationLandmark";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
 
 export function generateStaticParams() {
@@ -27,7 +25,6 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
 
   const currentIndex = DESTINATIONS.findIndex((d) => d.id === destination.id);
   const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
-  const landmarkShapes = LANDMARK_SHAPES[destination.id];
 
   return (
     <main className="bg-void">
@@ -46,9 +43,6 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           <DestinationGradientBackdrop sky={destination.sky} accent={destination.accent} />
         </div>
         <AtmosphereParticles kind={destination.atmosphere} />
-        <div className="absolute inset-0">
-          {landmarkShapes ? <DestinationLandmark shapes={landmarkShapes} accent={destination.accent} /> : null}
-        </div>
         <div
           className="absolute inset-0"
           style={{ background: "linear-gradient(180deg, rgba(5,5,6,0) 40%, rgba(5,5,6,0.55) 78%, rgba(5,5,6,0.92) 100%)" }}

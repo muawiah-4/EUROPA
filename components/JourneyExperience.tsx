@@ -21,7 +21,6 @@ import JourneyGradientStage from "@/components/JourneyGradientStage";
 // React Three Fiber touches the DOM/WebGL context — must stay client-only,
 // never evaluated during SSR.
 const GlobeHero = dynamic(() => import("@/components/three/GlobeHero"), { ssr: false });
-const JourneyLandmarkStage = dynamic(() => import("@/components/three/JourneyLandmarkStage"), { ssr: false });
 
 export default function JourneyExperience() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,22 +52,15 @@ export default function JourneyExperience() {
 
         {/*
           Chapters are split into background (sky + atmosphere particles)
-          and foreground (typography) layers, with the single shared 3D
-          landmark canvas sandwiched between the two loops below. That
-          ordering — backgrounds, then landmark, then all typography — is
-          what puts the landmark "above the sky gradient and atmosphere
-          particles but below the typography" across all eight chapters,
-          since each chapter is otherwise an independently crossfading
-          layer and a landmark nested inside just one of them couldn't sit
-          consistently between the other seven's backgrounds and foregrounds.
+          and foreground (typography) layers — no 3D landmark canvas
+          between them anymore, see JourneyGradientStage for the animated
+          backdrop that replaces it.
         */}
         <JourneyGradientStage progress={scrollYProgress} />
 
         {DESTINATIONS.map((d) => (
           <ChapterBackgroundLayer key={d.id} destination={d} progress={scrollYProgress} />
         ))}
-
-        <JourneyLandmarkStage progress={scrollYProgress} />
 
         {DESTINATIONS.map((d) => (
           <ChapterForegroundLayer key={d.id} destination={d} progress={scrollYProgress} />

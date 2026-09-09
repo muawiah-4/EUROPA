@@ -5,6 +5,7 @@ import { DESTINATIONS, getDestinationById } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
+import ParisKineticWordmark from "@/components/ParisKineticWordmark";
 
 export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
@@ -53,12 +54,16 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
             <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.32em]" style={{ color: destination.accent }}>
               {destination.eyebrow}
             </div>
-            <h1
-              className="text-balance font-display font-light leading-[0.92] tracking-[-0.03em] text-bone"
-              style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
-            >
-              {destination.city}
-            </h1>
+            {destination.id === "paris" ? (
+              <ParisKineticWordmark accent={destination.accent} />
+            ) : (
+              <h1
+                className="text-balance font-display font-light leading-[0.92] tracking-[-0.03em] text-bone"
+                style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
+              >
+                {destination.city}
+              </h1>
+            )}
             <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[17px]">
               {destination.tagline}
             </p>

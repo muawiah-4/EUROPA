@@ -29,7 +29,7 @@ export default function HeroTitle({
         transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="mb-6 font-mono text-[11px] uppercase tracking-[0.32em] text-mist"
       >
-        Europe
+        Europa
       </motion.div>
 
       <motion.h1
@@ -50,7 +50,7 @@ export default function HeroTitle({
         transition={{ duration: 0.9, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="mt-8 max-w-sm text-[15px] font-light leading-relaxed text-mist"
       >
-        An interactive journey through Europe&rsquo;s most unforgettable places.
+        Europe, beyond the postcard — an interactive journey through the continent&rsquo;s most unforgettable places.
       </motion.p>
 
       {/*

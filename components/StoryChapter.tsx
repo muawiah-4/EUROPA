@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import type { Destination } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
@@ -7,7 +8,7 @@ import AtmosphereParticles from "@/components/AtmosphereParticles";
 /**
  * One destination's full-viewport stage, split into two pieces so the
  * homepage's single shared 3D landmark canvas (JourneyLandmarkStage) can be
- * mounted once, between all eight chapters' backgrounds and all eight
+ * mounted once, between all ten chapters' backgrounds and all ten
  * chapters' typography, and still land in the correct visual stack order:
  * sky + atmosphere (this file's Background) -> landmark -> typography
  * (this file's Foreground). Previously this was one component that also
@@ -43,10 +44,48 @@ export const TEXT_HALF_WIDTH = 0.004;
 export function StoryChapterBackground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
   // The flat linear-gradient sky div that used to live here is gone — the
   // homepage's shared JourneyGradientStage now paints the animated
-  // equivalent underneath every chapter (see JourneyExperience.tsx), so
-  // this layer is just the particle atmosphere on top of it.
+  // equivalent underneath every chapter (see JourneyExperience.tsx). Every
+  // destination now carries a real photo (see lib/journey.ts's `photoSrc`,
+  // set for all 10 as of the site's second photo pass) — this layer adds
+  // it here too, so the main journey stops being "gradient + particles"
+  // for nine of its ten chapters and one photo for the tenth. Graded
+  // noticeably lighter-touch than DestinationPhotoBackdrop's detail-page
+  // recipe (less desaturation, a much bolder accent bloom) — this site's
+  // "more color, not just one muted accent" direction, not the detail
+  // page's quieter one.
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
+      {destination.photoSrc && (
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={destination.photoSrc}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+            style={{ filter: "grayscale(0.08) sepia(0.06) saturate(1.05) brightness(0.72) contrast(1.05)" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: `linear-gradient(180deg, ${destination.sky[0]}, ${destination.sky[1]})`,
+              mixBlendMode: "color",
+              opacity: 0.32,
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `radial-gradient(ellipse at 50% 30%, ${destination.accent}66, transparent 68%)` }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "radial-gradient(ellipse at center, transparent 36%, rgba(11,12,14,0.6) 100%)" }}
+          />
+        </div>
+      )}
       <AtmosphereParticles kind={destination.atmosphere} />
     </motion.div>
   );
@@ -55,6 +94,16 @@ export function StoryChapterBackground({ destination, opacity }: { destination: 
 export function StoryChapterForeground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden={false}>
+      {/* Legibility scrim, tinted with the chapter's own accent rather than
+          flat black — the background photo now runs brighter/more colorful
+          than the old pure-gradient chapters, so text needs help standing
+          off it, but the scrim itself is a chance for more color, not a
+          reason to mute everything back down to black. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%]"
+        style={{ background: `linear-gradient(0deg, rgba(11,12,14,0.86) 0%, ${destination.accent}22 55%, transparent 100%)` }}
+      />
       <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-16 md:px-16 md:pb-24">
         <div className="max-w-3xl">
           <div

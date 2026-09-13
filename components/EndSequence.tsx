@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import { DESTINATIONS } from "@/lib/journey";
+import MagneticButton from "@/components/MagneticButton";
 
 export default function EndSequence({
   progress,
@@ -65,15 +67,29 @@ export default function EndSequence({
         </h2>
 
         <p className="mt-6 max-w-sm text-[15px] font-light leading-relaxed text-mist">
-          Eight cities, one continuous story — yours to retrace, anytime.
+          Ten cities, one continuous story — yours to retrace, anytime.
         </p>
 
-        <button
-          onClick={onRestart}
-          className="hairline mt-10 rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
-        >
-          Explore again
-        </button>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <MagneticButton>
+            <button
+              onClick={onRestart}
+              data-cursor="link"
+              className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
+            >
+              Explore again
+            </button>
+          </MagneticButton>
+          <MagneticButton>
+            <Link
+              href="/destinations"
+              data-cursor="link"
+              className="rounded-full bg-bone px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-void transition-opacity hover:opacity-80"
+            >
+              Browse destinations
+            </Link>
+          </MagneticButton>
+        </div>
       </motion.div>
     </motion.div>
   );

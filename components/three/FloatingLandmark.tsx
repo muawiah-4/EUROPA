@@ -60,7 +60,7 @@ function buildGeometry(shape: LandmarkShape[number]): THREE.BufferGeometry {
 // GlobeHero uses for its atmosphere shell, applied directly to the solid
 // geometry instead of a separate glow shell so it stays cheap at this
 // object count. uHover brightens the rim on interaction.
-function createLandmarkMaterial(accent: string) {
+export function createLandmarkMaterial(accent: string) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uBaseColor: { value: new THREE.Color("#0c0d0f") },

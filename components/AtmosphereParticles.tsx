@@ -40,6 +40,16 @@ const CONFIG: Record<
   "rain-fog": { count: 140, size: [0.5, 1], speed: [40, 70], angle: Math.PI / 2.15, color: "190,205,220", opacity: [0.12, 0.35], wander: 0.05 },
   "warm-drift": { count: 50, size: [0.8, 2], speed: [3, 6], angle: -Math.PI / 2, color: "224,150,110", opacity: [0.06, 0.24], wander: 0.5 },
   "dusk-mist": { count: 45, size: [1.2, 3], speed: [2, 4], angle: -Math.PI / 2, color: "185,143,209", opacity: [0.05, 0.2], wander: 0.3 },
+  // Prague — lantern-lit old-town streets: a warm, dense, slow-rising dust,
+  // closest kin to "gold-dust" but denser and slightly cooler, since
+  // Prague's warmth comes from sodium streetlight amber, not sun.
+  "amber-glow": { count: 65, size: [0.7, 1.9], speed: [3, 6], angle: -Math.PI / 2.2, color: "227,180,120", opacity: [0.07, 0.28], wander: 0.35 },
+  // Iceland — the only atmosphere in the system that isn't dust, mist, or
+  // precipitation: slow, large, near-motionless soft-green drifts standing
+  // in for aurora light rather than any physical particulate. Deliberately
+  // the calmest config here (lowest speed, lowest wander) — the aurora
+  // should read as light hanging in the sky, not as anything falling.
+  aurora: { count: 34, size: [3, 7], speed: [0.6, 1.6], angle: -Math.PI / 2, color: "110,220,170", opacity: [0.05, 0.16], wander: 0.12 },
 };
 
 export default function AtmosphereParticles({

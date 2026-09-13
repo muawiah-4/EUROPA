@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { motion, type MotionValue } from "framer-motion";
-import { DESTINATIONS, JOURNEY_MARKS } from "@/lib/journey";
+import { DESTINATIONS, JOURNEY_MARKS, haversineKm } from "@/lib/journey";
+import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, projectLatLon } from "@/lib/europeGeo";
 
-// Hand-placed constellation coordinates (percent of container) — an artistic
-// arrangement echoing each city's rough relative position in Europe, not a
-// literal traced map projection.
-const POSITIONS: Record<string, { x: number; y: number }> = {
-  paris: { x: 34, y: 32 },
-  london: { x: 26, y: 20 },
-  amsterdam: { x: 40, y: 22 },
-  barcelona: { x: 28, y: 62 },
-  rome: { x: 54, y: 58 },
-  venice: { x: 56, y: 44 },
-  santorini: { x: 70, y: 72 },
-  alps: { x: 46, y: 42 },
-};
+// Every city's real projected lat/lon (see lib/europeGeo.ts) — matches the
+// same map system used on Destinations/About/Journeys, not a separate
+// hand-placed arrangement.
+const POSITIONS: Record<string, { x: number; y: number }> = (() => {
+  const map: Record<string, { x: number; y: number }> = {};
+  for (const d of DESTINATIONS) {
+    const p = projectLatLon(d.coordinates.lat, d.coordinates.lon);
+    map[d.id] = { x: (p.x / MAP_WIDTH) * 100, y: (p.y / MAP_HEIGHT) * 100 };
+  }
+  return map;
+})();
+
+const ROUTE = JOURNEY_ROUTE_ORDER.map((id) => DESTINATIONS.find((d) => d.id === id)!).filter(Boolean);
 
 // Scroll-linked appearance window. Originally an ~0.8%-of-scroll sliver
 // (under 9vh) between the last chapter and the outro — too narrow to
@@ -47,6 +48,7 @@ export default function InteractiveMap({
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [p, setP] = useState(0);
+  const gradientIdBase = useId();
   // The map isn't only reachable by scrolling into its narrow window — a
   // small persistent toggle lets a visitor open it on demand from anywhere
   // in the journey, like reaching for a travel object rather than waiting
@@ -97,17 +99,46 @@ export default function InteractiveMap({
               className="mt-3 font-display font-light tracking-[-0.02em] text-bone"
               style={{ fontSize: "clamp(1.6rem, 4vw, 2.6rem)" }}
             >
-              Every place, one constellation.
+              Every place, at its real coordinates.
             </h3>
           </div>
 
-          <div className="relative mx-auto aspect-[4/3] w-full max-w-xl">
-            <svg viewBox="0 0 100 75" className="absolute inset-0 h-full w-full opacity-20">
-              {DESTINATIONS.slice(0, -1).map((d, i) => {
-                const a = POSITIONS[d.id];
-                const b = POSITIONS[DESTINATIONS[i + 1].id];
-                if (!a || !b) return null;
-                return <line key={d.id} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#6b6a66" strokeWidth="0.15" />;
+          <div className="relative mx-auto w-full max-w-xl" style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}>
+            <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="absolute inset-0 h-full w-full">
+              <defs>
+                <filter id={`${gradientIdBase}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="0.5" />
+                </filter>
+                {ROUTE.slice(0, -1).map((d, i) => {
+                  const next = ROUTE[i + 1];
+                  const a = projectLatLon(d.coordinates.lat, d.coordinates.lon);
+                  const b = projectLatLon(next.coordinates.lat, next.coordinates.lon);
+                  return (
+                    <linearGradient key={i} id={`${gradientIdBase}-leg-${i}`} gradientUnits="userSpaceOnUse" x1={a.x} y1={a.y} x2={b.x} y2={b.y}>
+                      <stop offset="0%" stopColor={d.accent} />
+                      <stop offset="100%" stopColor={next.accent} />
+                    </linearGradient>
+                  );
+                })}
+              </defs>
+              {ROUTE.slice(0, -1).map((d, i) => {
+                const next = ROUTE[i + 1];
+                const a = projectLatLon(d.coordinates.lat, d.coordinates.lon);
+                const b = projectLatLon(next.coordinates.lat, next.coordinates.lon);
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const nx = -dy / len;
+                const ny = dx / len;
+                const bow = len * 0.14;
+                const mid = { x: (a.x + b.x) / 2 + nx * bow, y: (a.y + b.y) / 2 + ny * bow };
+                const path = `M ${a.x} ${a.y} Q ${mid.x} ${mid.y} ${b.x} ${b.y}`;
+                return (
+                  <g key={d.id}>
+                    <path d={path} fill="none" stroke={`url(#${gradientIdBase}-leg-${i})`} strokeWidth={0.5} opacity={0.35} filter={`url(#${gradientIdBase}-glow)`} />
+                    <path d={path} fill="none" stroke={`url(#${gradientIdBase}-leg-${i})`} strokeWidth={0.08} strokeLinecap="round" opacity={0.7} />
+                  </g>
+                );
               })}
             </svg>
 

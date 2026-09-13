@@ -20,9 +20,11 @@ type Corner = "tl" | "tr" | "bl" | "br";
 
 /**
  * One 22×22px L-shaped hairline mark, anchored to a viewport corner.
- * Structural "specimen vitrine" framing chrome — static, no color, no motion.
+ * Structural "specimen vitrine" framing chrome, tinted with the
+ * destination's own accent (previously a fixed neutral mist tone) so the
+ * frame itself carries the page's color, not just the headline beneath it.
  */
-function CornerBracket({ corner }: { corner: Corner }) {
+function CornerBracket({ corner, accent }: { corner: Corner; accent: string }) {
   const isTop = corner === "tl" || corner === "tr";
   const isLeft = corner === "tl" || corner === "bl";
 
@@ -34,8 +36,8 @@ function CornerBracket({ corner }: { corner: Corner }) {
         isLeft ? "left-6 md:left-10" : "right-6 md:right-10",
       ].join(" ")}
     >
-      <div className={["absolute h-px w-full bg-mist/25", isTop ? "top-0" : "bottom-0"].join(" ")} />
-      <div className={["absolute h-full w-px bg-mist/25", isLeft ? "left-0" : "right-0"].join(" ")} />
+      <div className={["absolute h-px w-full", isTop ? "top-0" : "bottom-0"].join(" ")} style={{ background: `${accent}70` }} />
+      <div className={["absolute h-full w-px", isLeft ? "left-0" : "right-0"].join(" ")} style={{ background: `${accent}70` }} />
     </div>
   );
 }
@@ -62,13 +64,13 @@ export default function DestinationSpecimenFrame({ destination }: { destination:
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10" aria-hidden>
-      <CornerBracket corner="tl" />
-      <CornerBracket corner="tr" />
-      <CornerBracket corner="bl" />
-      <CornerBracket corner="br" />
+      <CornerBracket corner="tl" accent={destination.accent} />
+      <CornerBracket corner="tr" accent={destination.accent} />
+      <CornerBracket corner="bl" accent={destination.accent} />
+      <CornerBracket corner="br" accent={destination.accent} />
 
       <div className="dest-hero-fade absolute right-6 top-24 text-right md:right-16 md:top-28">
-        <div className="ml-auto h-px w-6 bg-mist/25" />
+        <div className="ml-auto h-px w-6" style={{ background: `${destination.accent}70` }} />
         <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-mist/80 md:text-[12px]">
           {lat}, {lon}
         </div>

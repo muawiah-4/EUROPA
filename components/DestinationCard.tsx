@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Destination } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
@@ -16,21 +17,51 @@ export default function DestinationCard({ destination }: { destination: Destinat
         className="relative h-64 overflow-hidden sm:h-72 lg:h-80"
         style={{ background: `linear-gradient(180deg, ${destination.sky[0]}, ${destination.sky[1]})` }}
       >
-        <div className="pointer-events-none absolute inset-0 opacity-70 transition-transform duration-[1200ms] ease-out group-hover:scale-[1.06]">
+        {/* Real photo, same grading recipe as IconsOfEurope's cards — these
+            cards previously showed only the gradient + particle backdrop,
+            no photography at all. */}
+        {destination.photoSrc && (
+          <Image
+            src={destination.photoSrc}
+            alt=""
+            fill
+            sizes="(min-width: 640px) 380px, 85vw"
+            className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.06]"
+            style={{ filter: "grayscale(0.35) sepia(0.2) saturate(0.6) brightness(0.55) contrast(1.1)" }}
+          />
+        )}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(180deg, ${destination.sky[0]}, ${destination.sky[1]})`,
+            mixBlendMode: "color",
+            opacity: 0.7,
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-70">
           <AtmosphereParticles kind={destination.atmosphere} />
         </div>
+
+        {/* Accent glow — dormant until hover, then a real color moment
+            rather than just the hairline below */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{ background: `radial-gradient(ellipse at 50% 30%, ${destination.accent}40, transparent 65%)` }}
+        />
 
         {/* Top scrim for label legibility */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-24"
-          style={{ background: "linear-gradient(180deg, rgba(5,5,6,0.55), transparent)" }}
+          style={{ background: "linear-gradient(180deg, rgba(11,12,14,0.55), transparent)" }}
         />
         {/* Bottom scrim, blends into the text panel below */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
-          style={{ background: "linear-gradient(0deg, var(--panel), transparent)" }}
+          style={{ background: "linear-gradient(0deg, rgb(var(--panel)), transparent)" }}
         />
 
         {/* Index / country eyebrow */}
@@ -49,11 +80,16 @@ export default function DestinationCard({ destination }: { destination: Destinat
 
       {/* Copy */}
       <div className="relative px-6 py-7">
-        <h3 className="font-display text-2xl font-light leading-tight text-bone">{destination.city}</h3>
-        <p className="mt-3 max-w-[34ch] text-[13px] leading-relaxed text-mist">{destination.tagline}</p>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `linear-gradient(180deg, ${destination.accent}12, transparent 60%)` }}
+        />
+        <h3 className="relative font-display text-2xl font-light leading-tight text-bone">{destination.city}</h3>
+        <p className="relative mt-3 max-w-[34ch] text-[13px] leading-relaxed text-mist">{destination.tagline}</p>
 
         <div
-          className="mt-6 flex items-center justify-between border-t pt-4"
+          className="relative mt-6 flex items-center justify-between border-t pt-4"
           style={{ borderColor: "rgba(242,239,233,0.08)" }}
         >
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke transition-colors duration-300 group-hover:text-bone">

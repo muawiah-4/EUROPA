@@ -28,7 +28,7 @@ const FADE = 0.02;
  * Single shared animated background for the whole scroll journey, replacing
  * every chapter's flat `linear-gradient(sky[0], sky[1])` div with one
  * continuously-running GradientWave canvas whose palette swaps as the
- * active destination changes. Mounting eight separate WebGL contexts (one
+ * active destination changes. Mounting ten separate WebGL contexts (one
  * per chapter, all crossfaded via opacity like the chapters themselves)
  * would be wasteful and janky; one canvas that repaints its uniforms on
  * change — see Gradient.setColors — is the same pattern JourneyLandmarkStage

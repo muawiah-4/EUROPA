@@ -3,15 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --font-display: -apple-system, "SF Pro Display", "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Times New Roman", Times, Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --void: #050506;
-  --panel: #0c0d10;
-  --elevated: #15161a;
-  --bone: #f2efe9;
-  --mist: #b8b6ae;
-  --smoke: #6b6a66;
+  /* Fifth background pass — a genuine monochrome grayscale palette the
+     user supplied directly (exact hex, a 5-step black-to-white ramp with
+     no hue at all: #0B0C0E/#1E2126/#3A3F47/#C3C7CE/#F8F8F9), replacing the
+     navy/slate one before it. void -> panel -> elevated map directly to
+     the three darkest steps (already in ascending order in the source
+     palette); bone and mist map to the two lightest. --smoke has no 6th
+     step in the source palette, so it's interpolated between elevated and
+     mist — verified at ~5:1 against the new (very dark) void, comfortably
+     past the ~2.8-3:1 this tertiary-label role has targeted throughout
+     this file's history. mint stays as the one surviving accent color
+     (AmbientBackground.tsx's blobs are grayscale now, not this) — a single
+     color note against full monochrome reads as a deliberate choice, not
+     a hue this palette forgot to remove; each destination also keeps its
+     own individual accent (Paris gold, Rome terracotta, etc.), a separate
+     system predating every one of these background passes.
+
+     Space-separated R G B channels, not hex/rgb() — required for
+     Tailwind's color-opacity-modifier syntax (bg-void/50, text-mist/80,
+     etc.) to work against a CSS variable; see tailwind.config.ts's
+     withOpacity() for why a plain hex string here silently breaks every
+     /NN opacity modifier built on these tokens. */
+  --void: 11 12 14; /* #0b0c0e */
+  --panel: 30 33 38; /* #1e2126 */
+  --elevated: 58 63 71; /* #3a3f47 */
+  --bone: 248 248 249; /* #f8f8f9 */
+  --mist: 195 199 206; /* #c3c7ce */
+  --smoke: 125 130 138; /* interpolated between elevated and mist */
+  --mint: 59 186 156; /* #3bba9c — kept as the one accent, see above */
 }
 
 * {
@@ -19,25 +41,48 @@
 }
 
 html {
-  background: var(--void);
+  background: rgb(var(--void));
 }
 
 body {
   margin: 0;
-  background: var(--void);
-  color: var(--bone);
+  background: rgb(var(--void));
+  color: rgb(var(--bone));
   overscroll-behavior-y: none;
   font-feature-settings: "ss01" on;
+  /* Site-wide serif — applies everywhere by inheritance; elements that
+     need the technical mono voice (labels, coordinates, data) still opt
+     into font-mono explicitly and are unaffected. */
+  font-family: var(--font-display), "Times New Roman", Times, Georgia, serif;
 }
 
 ::selection {
-  background: var(--bone);
-  color: var(--void);
+  background: rgb(var(--bone));
+  color: rgb(var(--void));
 }
 
 :focus-visible {
-  outline: 1px solid var(--bone);
+  outline: 1px solid rgb(var(--bone));
   outline-offset: 3px;
+}
+
+/* Native horizontal scroll (touch swipe, trackpad, wheel) stays fully
+   functional — this only hides the scrollbar chrome, used by
+   DestinationsCarousel.tsx's swipeable rail. */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Set by CustomCursor.tsx only on fine-pointer, non-reduced-motion
+   devices — hides the native cursor so the custom dot/ring stand in for it
+   without ever fighting a touch device or an OS-level motion preference. */
+.custom-cursor-active,
+.custom-cursor-active * {
+  cursor: none !important;
 }
 
 /* Thin hairline used across the UI chrome — nav, progress rail, ghost buttons */

@@ -94,7 +94,7 @@ export const LANDMARK_SHAPES: Record<string, LandmarkShape> = {
   ],
 
   // Mountain cluster — plain cones at varying radius/height/position; the
-  // simplest recipe of the eight, deliberately so — the Alps' whole
+  // simplest recipe of the ten, deliberately so — the Alps' whole
   // character is scale and repetition, not detail.
   alps: [
     { kind: "cone", args: [0.75, 1.7, 5], position: [-0.9, -1.05, -0.3] },
@@ -150,5 +150,36 @@ export const LANDMARK_SHAPES: Record<string, LandmarkShape> = {
     { kind: "cone", args: [0.4, 0.5, 4], position: [0.25, 0.08, 0], rotation: [0, Math.PI / 4, 0] },
     { kind: "box", args: [0.5, 2.1, 0.5], position: [0.9, -0.75, 0] },
     { kind: "cone", args: [0.4, 0.6, 4], position: [0.9, 0.6, 0], rotation: [0, Math.PI / 4, 0] },
+  ],
+
+  // Old Town Hall tower (left) + Týn Church's twin Gothic spires (right) —
+  // the same two-landmark-cluster idea as Rome's colonnade-on-a-drum, here
+  // reading as Old Town Square's real skyline pairing. The tower carries
+  // two flat rings at different heights standing in for the astronomical
+  // clock's two real dials (the zodiac dial above, the calendar dial
+  // below) rather than one generic clock face like London's.
+  prague: [
+    { kind: "box", args: [0.55, 2.2, 0.55], position: [-0.75, -0.65, 0] },
+    { kind: "ring", args: [0.16, 0.24, 20], position: [-0.75, 0.05, 0.29] },
+    { kind: "ring", args: [0.09, 0.14, 16], position: [-0.75, -0.32, 0.29] },
+    { kind: "cone", args: [0.34, 0.55, 4], position: [-0.75, 0.75, 0], rotation: [0, Math.PI / 4, 0] },
+    { kind: "cylinder", args: [0.14, 0.2, 1.5, 4], position: [0.55, -0.6, 0] },
+    { kind: "cone", args: [0.14, 0.85, 4], position: [0.55, 0.575, 0] },
+    { kind: "cylinder", args: [0.12, 0.17, 1.3, 4], position: [0.95, -0.7, 0.05] },
+    { kind: "cone", args: [0.12, 0.72, 4], position: [0.95, 0.31, 0.05] },
+  ],
+
+  // Glacier shards (angled boxes, the only recipe in this set that tilts
+  // its boxes off-axis — deliberately jagged rather than square, since
+  // Iceland's whole character is raw geology, not architecture), a
+  // volcanic cone behind them, and a thin geyser jet capped with a sphere
+  // "steam puff" in front — three geologic ideas instead of one building.
+  iceland: [
+    { kind: "box", args: [0.9, 1.1, 0.7], position: [-0.6, -1.1, 0], rotation: [0.05, 0.3, 0.08] },
+    { kind: "box", args: [0.55, 0.75, 0.5], position: [-0.1, -1.35, 0.2], rotation: [-0.04, 0.6, 0.05] },
+    { kind: "box", args: [0.4, 0.5, 0.4], position: [0.35, -1.45, -0.1], rotation: [0.08, -0.4, 0.1] },
+    { kind: "cone", args: [0.85, 1.5, 6], position: [0.65, -1.05, -0.4] },
+    { kind: "cylinder", args: [0.05, 0.09, 0.9, 6], position: [-0.85, -0.55, 0.5] },
+    { kind: "sphere", args: [0.11, 10, 8], position: [-0.85, -0.02, 0.5] },
   ],
 };

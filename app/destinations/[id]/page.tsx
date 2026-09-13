@@ -2,10 +2,13 @@ import type { ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { DESTINATIONS, getDestinationById } from "@/lib/journey";
+import { DESTINATIONS, getDestinationById, haversineKm } from "@/lib/journey";
+import { JOURNEY_ROUTE_ORDER, estimateTravelTime } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
+import DestinationPhotoBackdrop from "@/components/DestinationPhotoBackdrop";
+import DestinationPhotoGallery from "@/components/DestinationPhotoGallery";
 import DestinationSpecimenFrame from "@/components/DestinationSpecimenFrame";
 import ParisKineticWordmark from "@/components/ParisKineticWordmark";
 import RomeKineticWordmark from "@/components/RomeKineticWordmark";
@@ -15,6 +18,8 @@ import AlpsKineticWordmark from "@/components/AlpsKineticWordmark";
 import LondonKineticWordmark from "@/components/LondonKineticWordmark";
 import BarcelonaKineticWordmark from "@/components/BarcelonaKineticWordmark";
 import AmsterdamKineticWordmark from "@/components/AmsterdamKineticWordmark";
+import PragueKineticWordmark from "@/components/PragueKineticWordmark";
+import IcelandKineticWordmark from "@/components/IcelandKineticWordmark";
 
 // One kinetic wordmark per destination — each a genuinely different
 // mechanism (see the individual component files), never a 3D object or a
@@ -28,6 +33,8 @@ const KINETIC_WORDMARKS: Record<string, ComponentType<{ accent: string }>> = {
   london: LondonKineticWordmark,
   barcelona: BarcelonaKineticWordmark,
   amsterdam: AmsterdamKineticWordmark,
+  prague: PragueKineticWordmark,
+  iceland: IcelandKineticWordmark,
 };
 
 export function generateStaticParams() {
@@ -51,6 +58,21 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
   const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
   const KineticWordmark = KINETIC_WORDMARKS[destination.id];
 
+  // This destination's real place on the Grand Tour route (lib/europeGeo.ts's
+  // geographic travel order), not the site's narrative chapter order above —
+  // replaces the old standalone map section with concrete route data instead.
+  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id as (typeof JOURNEY_ROUTE_ORDER)[number]);
+  const prevStop = routeIndex > 0 ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
+  const nextStop =
+    routeIndex >= 0 && routeIndex < JOURNEY_ROUTE_ORDER.length - 1
+      ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex + 1])
+      : null;
+  const legFrom = (other: typeof destination) => {
+    const km = Math.round(haversineKm(destination.coordinates, other.coordinates));
+    const { hours, mode } = estimateTravelTime(km);
+    return { km, hours, mode };
+  };
+
   return (
     <main className="bg-void">
       {/* Entrance-fade keyframes, scoped to this page only */}
@@ -65,12 +87,20 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {/* ---------- Hero ---------- */}
       <section className="relative h-[92vh] min-h-[620px] w-full overflow-hidden">
         <div className="absolute inset-0">
-          <DestinationGradientBackdrop sky={destination.sky} accent={destination.accent} />
+          {destination.photoSrc ? (
+            <DestinationPhotoBackdrop
+              photos={[destination.photoSrc, ...(destination.galleryPhotos ?? []).map((p) => p.src)]}
+              sky={destination.sky}
+              accent={destination.accent}
+            />
+          ) : (
+            <DestinationGradientBackdrop sky={destination.sky} accent={destination.accent} />
+          )}
         </div>
         <AtmosphereParticles kind={destination.atmosphere} />
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, rgba(5,5,6,0) 40%, rgba(5,5,6,0.55) 78%, rgba(5,5,6,0.92) 100%)" }}
+          style={{ background: "linear-gradient(180deg, rgba(11,12,14,0) 40%, rgba(11,12,14,0.55) 78%, rgba(11,12,14,0.92) 100%)" }}
         />
 
         <DestinationSpecimenFrame destination={destination} />
@@ -93,20 +123,45 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
             <p className="mt-6 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[17px]">
               {destination.tagline}
             </p>
+            {destination.deepDiveHref && (
+              <Link
+                href={destination.deepDiveHref}
+                className="group mt-8 inline-flex items-baseline gap-3 font-mono text-[11px] uppercase tracking-[0.24em] text-mist transition-colors hover:text-bone"
+              >
+                Experience it in motion
+                <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
       {/* ---------- Overview ---------- */}
-      <section className="mx-auto max-w-3xl px-6 py-20 md:px-10 md:py-28">
-        <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</div>
-        <p className="mt-6 text-balance font-display text-[22px] font-light leading-[1.5] text-bone md:text-[28px]">
-          {destination.overview}
-        </p>
+      <section className="relative overflow-hidden px-6 py-20 md:px-10 md:py-28">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div
+            className="absolute -top-32 -right-24 h-[380px] w-[380px] rounded-full blur-[130px]"
+            style={{ background: destination.accent, opacity: 0.12 }}
+          />
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</div>
+          <p className="mt-6 text-balance font-display text-[22px] font-light leading-[1.5] text-bone md:text-[28px]">
+            {destination.overview}
+          </p>
+        </div>
       </section>
 
       {/* ---------- History & Culture ---------- */}
-      <section className="border-t border-white/[0.06] bg-panel">
+      <section className="relative overflow-hidden border-t border-white/[0.06] bg-panel">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div
+            className="absolute -bottom-40 -left-20 h-[420px] w-[420px] rounded-full blur-[140px]"
+            style={{ background: destination.accent, opacity: 0.1 }}
+          />
+        </div>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-14 px-6 py-20 md:grid-cols-2 md:gap-16 md:px-10 md:py-28">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">History</div>
@@ -123,27 +178,85 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
         </div>
       </section>
 
-      {/* ---------- Highlights ---------- */}
-      <section className="mx-auto max-w-3xl px-6 py-20 md:px-10 md:py-28">
-        <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Look for</div>
-        <ol className="mt-8 divide-y divide-white/[0.06] border-y border-white/[0.06]">
-          {destination.highlights.map((h, i) => (
-            <li key={h} className="flex items-start gap-6 py-6">
-              <span
-                className="mt-[2px] shrink-0 font-mono text-[12px] tracking-[0.18em]"
-                style={{ color: destination.accent }}
-                aria-hidden
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="max-w-xl text-[15px] font-light leading-relaxed text-bone md:text-[16px]">{h}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
+      {/* ---------- Gallery ---------- */}
+      {destination.galleryPhotos && destination.galleryPhotos.length > 0 && (
+        <section className="border-t border-white/[0.06] bg-panel px-6 py-20 md:px-10 md:py-28">
+          <div className="mx-auto max-w-5xl">
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">In frame</div>
+            <div className="mt-8">
+              <DestinationPhotoGallery photos={destination.galleryPhotos} accent={destination.accent} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- Grand Tour route ---------- */}
+      {(prevStop || nextStop) && (
+        <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
+          <div className="mx-auto max-w-5xl">
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">
+              On the Grand Tour — stop {String(routeIndex + 1).padStart(2, "0")} of {JOURNEY_ROUTE_ORDER.length}
+            </div>
+            <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+              {prevStop && (
+                <Link
+                  href={`/destinations/${prevStop.id}`}
+                  className="group flex flex-col border-l-2 py-1 pl-6 transition-colors"
+                  style={{ borderColor: `${prevStop.accent}55` }}
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke">
+                    ← Previous stop
+                  </span>
+                  <span className="mt-2 font-display text-2xl font-light tracking-[-0.02em] text-bone transition-colors group-hover:text-mist">
+                    {prevStop.city}
+                  </span>
+                  <span className="mt-2 font-mono text-[11px] uppercase tracking-[0.16em] text-mist">
+                    {legFrom(prevStop).km.toLocaleString()} km · ~{legFrom(prevStop).hours.toFixed(1)} hrs · {legFrom(prevStop).mode}
+                  </span>
+                </Link>
+              )}
+              {nextStop ? (
+                <Link
+                  href={`/destinations/${nextStop.id}`}
+                  className="group flex flex-col border-l-2 py-1 pl-6 text-left transition-colors md:items-end md:border-l-0 md:border-r-2 md:pl-0 md:pr-6 md:text-right"
+                  style={{ borderColor: `${nextStop.accent}55` }}
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke">
+                    Next stop →
+                  </span>
+                  <span className="mt-2 font-display text-2xl font-light tracking-[-0.02em] text-bone transition-colors group-hover:text-mist">
+                    {nextStop.city}
+                  </span>
+                  <span className="mt-2 font-mono text-[11px] uppercase tracking-[0.16em] text-mist">
+                    {legFrom(nextStop).km.toLocaleString()} km · ~{legFrom(nextStop).hours.toFixed(1)} hrs · {legFrom(nextStop).mode}
+                  </span>
+                </Link>
+              ) : (
+                <div className="flex flex-col py-1 text-left md:items-end md:text-right">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke">Journey&rsquo;s end</span>
+                  <span className="mt-2 font-display text-2xl font-light tracking-[-0.02em] text-bone">
+                    The tour closes here
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="mt-10">
+              <Link href="/journeys" className="font-mono text-[11px] uppercase tracking-[0.24em] text-mist transition-colors hover:text-bone">
+                See the full Grand Tour →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ---------- Practical info ---------- */}
-      <section className="border-t border-white/[0.06] bg-panel">
+      <section className="relative overflow-hidden border-t border-white/[0.06] bg-panel">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div
+            className="absolute -top-24 right-[10%] h-[340px] w-[340px] rounded-full blur-[130px]"
+            style={{ background: destination.accent, opacity: 0.1 }}
+          />
+        </div>
         <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-20 md:flex-row md:justify-between md:px-10 md:py-28">
           <div className="max-w-md">
             <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Travel tip</div>

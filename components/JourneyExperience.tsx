@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useRef } from "react";
-import { useScroll } from "framer-motion";
+import { useScroll, useSpring } from "framer-motion";
 import { DESTINATIONS, JOURNEY_LENGTH_VH, JOURNEY_MARKS } from "@/lib/journey";
 import {
   StoryChapterBackground,
@@ -25,10 +25,21 @@ const GlobeHero = dynamic(() => import("@/components/three/GlobeHero"), { ssr: f
 export default function JourneyExperience() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: rawProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
+
+  // Every downstream animation (camera moves, chapter fades, the globe's
+  // dolly) reads this instead of the raw scroll value. Raw scrollYProgress
+  // tracks the wheel/trackpad 1:1, which feels abrupt on the kind of large,
+  // continuous camera moves this page does — a light spring gives the
+  // catch-up/ease feel of premium scrollytelling sites without touching
+  // any of the site's actual scroll-jacking (there isn't any; this only
+  // smooths what's already driven by native scroll position). Tuned
+  // stiff/damped rather than loose+bouncy: it should feel like inertia,
+  // not like the page is fighting the scroll.
+  const scrollYProgress = useSpring(rawProgress, { stiffness: 300, damping: 40, mass: 0.4 });
 
   const scrollToFraction = useCallback((fraction: number) => {
     const el = containerRef.current;
@@ -44,7 +55,7 @@ export default function JourneyExperience() {
 
   return (
     <div ref={containerRef} style={{ height: `${JOURNEY_LENGTH_VH}vh` }} className="relative bg-void">
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+      <div className="sticky top-0 h-screen w-full overflow-hidden" style={{ willChange: "transform" }}>
         <HeroGradientBackdrop progress={scrollYProgress} heroEnd={JOURNEY_MARKS.heroEnd} />
         <GlobeHero progress={scrollYProgress} />
         <HeroTitle progress={scrollYProgress} heroEnd={JOURNEY_MARKS.heroEnd} />

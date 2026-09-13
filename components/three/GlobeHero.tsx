@@ -5,29 +5,28 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
-
-// Europe's very rough lat/long bounding shape, sampled as a loose point
-// cloud rather than a traced landmass outline — enough to read as "a
-// continent" from orbit without importing real geo data.
-const EUROPE_POINTS: [number, number][] = [
-  [36, -9], [37, -3], [39, 3], [41, 9], [43, 13], [45, 12], [44, 8], [46, 6],
-  [47, 8], [48, 11], [50, 8], [52, 4], [51, -1], [53, -3], [55, -3], [57, 8],
-  [59, 11], [60, 18], [58, 24], [55, 24], [53, 20], [50, 19], [48, 22], [46, 25],
-  [44, 26], [42, 21], [40, 23], [38, 21], [37, 15], [40, 15], [42, 12], [43, 10],
-  [45, 15], [45, 19], [47, 21], [49, 14], [50, 16], [52, 13], [54, 15], [55, 10],
-  [56, 12], [58, 14], [60, 24], [61, 21], [63, 21], [65, 17],
-];
+import { EUROPE_POINTS } from "@/lib/europeGeo";
 
 // Major destinations get a brighter marker point, matching the journey data.
+// One shared mint marker color, not a per-destination accent palette — the
+// entry hero is ambient background before any destination is chosen or
+// focused, the same category AmbientBackground.tsx was already fixed for
+// (a multi-hue moment with no engaged context to justify it, per the site's
+// closed-accent-economy rule). Per-destination accent stays reserved for a
+// destination's own card/page, where it's an engaged, single-subject choice.
+const MARKER_COLOR = "#3bba9c";
+
 const CITY_MARKERS: { lat: number; lon: number; color: string }[] = [
-  { lat: 48.85, lon: 2.35, color: "#e8c07a" }, // Paris
-  { lat: 41.9, lon: 12.49, color: "#d99a5b" }, // Rome
-  { lat: 36.4, lon: 25.43, color: "#5fb8d6" }, // Santorini
-  { lat: 45.44, lon: 12.33, color: "#7fb0ad" }, // Venice
-  { lat: 46.5, lon: 8.0, color: "#c9d6dd" }, // Alps
-  { lat: 51.5, lon: -0.12, color: "#e0a94a" }, // London
-  { lat: 41.38, lon: 2.17, color: "#e0855a" }, // Barcelona
-  { lat: 52.37, lon: 4.9, color: "#b98fd1" }, // Amsterdam
+  { lat: 48.85, lon: 2.35, color: MARKER_COLOR }, // Paris
+  { lat: 41.9, lon: 12.49, color: MARKER_COLOR }, // Rome
+  { lat: 36.4, lon: 25.43, color: MARKER_COLOR }, // Santorini
+  { lat: 45.44, lon: 12.33, color: MARKER_COLOR }, // Venice
+  { lat: 46.5, lon: 8.0, color: MARKER_COLOR }, // Alps
+  { lat: 51.5, lon: -0.12, color: MARKER_COLOR }, // London
+  { lat: 41.38, lon: 2.17, color: MARKER_COLOR }, // Barcelona
+  { lat: 52.37, lon: 4.9, color: MARKER_COLOR }, // Amsterdam
+  { lat: 50.08, lon: 14.44, color: MARKER_COLOR }, // Prague
+  { lat: 64.96, lon: -19.02, color: MARKER_COLOR }, // Iceland — sits apart from the cluster, geographically honest
 ];
 
 // The globe's single "sun" tint — reused verbatim from the Paris marker
@@ -201,6 +200,38 @@ function buildDustData(count: number) {
   return { positions, sizes, alphas };
 }
 
+// A single expanding, fading ring — tangent to the globe's surface at the
+// marker's position (oriented via the same position-as-normal technique
+// used elsewhere in this file for surface-aligned geometry), looping on a
+// fixed period with a phase offset so a marker's two rings pulse
+// staggered rather than in lockstep. Was a flat, non-animated glow sprite;
+// this is the piece that was actually missing to read as "pulsing."
+function PulsingRing({ position, color, phase }: { position: THREE.Vector3; color: string; phase: number }) {
+  const ref = useRef<THREE.Mesh>(null);
+  const material = useMemo(() => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }), [color]);
+  useEffect(() => () => material.dispose(), [material]);
+
+  const quaternion = useMemo(() => {
+    const normal = position.clone().normalize();
+    return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+  }, [position]);
+
+  const period = 2.4;
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = ((state.clock.elapsedTime + phase) % period) / period;
+    const scale = 0.3 + t * 1.4;
+    ref.current.scale.setScalar(scale);
+    material.opacity = (1 - t) * 0.55;
+  });
+
+  return (
+    <mesh ref={ref} position={position} quaternion={quaternion} material={material}>
+      <ringGeometry args={[0.026, 0.034, 32]} />
+    </mesh>
+  );
+}
+
 function Globe({ progressRef }: { progressRef: { current: number } }) {
   const group = useRef<THREE.Group>(null);
   const camGoal = useRef({ x: 0, y: 0.4, z: 6.4 });
@@ -321,6 +352,21 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
                   />
                 </sprite>
               )}
+            </group>
+          );
+        })}
+
+        {/* Pulsing rings, staggered per marker so the whole globe doesn't
+            beat in unison — the same "pulse" idea as the pasted cobe-based
+            reference component, built as real 3D geometry in this globe's
+            own established techniques instead of pulling in a second,
+            unrelated globe library alongside the one this site already has. */}
+        {CITY_MARKERS.map((c, i) => {
+          const pos = toVec3(c.lat, c.lon, 2.03);
+          return (
+            <group key={`ring-${i}`}>
+              <PulsingRing position={pos} color={c.color} phase={i * 0.35} />
+              <PulsingRing position={pos} color={c.color} phase={i * 0.35 + 1.2} />
             </group>
           );
         })}

@@ -6,7 +6,9 @@ export type AtmosphereKind =
   | "snowfall"
   | "rain-fog"
   | "warm-drift"
-  | "dusk-mist";
+  | "dusk-mist"
+  | "amber-glow"
+  | "aurora";
 
 export type Destination = {
   id: string;
@@ -43,17 +45,47 @@ export type Destination = {
   travelTip: string;
   /** Best season to visit, plain text */
   bestSeason: string;
+  /**
+   * Optional real photograph, graded toward this destination's own
+   * `sky`/`accent` rather than shown raw — see DestinationPhotoBackdrop.
+   * Started as a hybrid trial on Paris only; now set per-destination as
+   * real photos are supplied. Omitted entirely, a destination falls back
+   * to the existing pure-procedural DestinationGradientBackdrop.
+   */
+  photoSrc?: string;
+  /**
+   * Optional small real-photo gallery for the detail page — see
+   * DestinationPhotoGallery. Same hybrid-photography trial as `photoSrc`,
+   * just more of it; omitted entirely for destinations with no supplied
+   * photos yet.
+   */
+  galleryPhotos?: { src: string; aspect: number; caption: string }[];
+  /**
+   * Optional link to a richer, bespoke scroll experience for this
+   * destination (e.g. /paris) — set only where one exists; every other
+   * destination falls back to the standard detail-page template.
+   */
+  deepDiveHref?: string;
 };
 
 // Total scroll length of the pinned journey container, in vh. Long enough
-// that 8 rich chapters each get real breathing room. Chapters are no longer
+// that 10 rich chapters each get real breathing room. Chapters are no longer
 // equal-width slices — each destination's `pace` now maps to how much of
-// that 1100vh it actually owns, so "slow" destinations (Paris, Rome,
-// Venice, the Alps) get an unhurried ~127-138vh, "medium" ones (Barcelona,
-// Amsterdam) sit around ~105vh, and "brisk" ones (Santorini, London) move
-// through in ~83vh — a shorter, quicker beat, per the "sound-inspired
-// visual rhythm" from the creative brief. See each `range` tuple below.
-export const JOURNEY_LENGTH_VH = 1100;
+// that 1342vh it actually owns, so "slow" destinations (Paris, Rome,
+// Venice, the Alps, Iceland) get an unhurried ~127-138vh, "medium" ones
+// (Barcelona, Amsterdam, Prague) sit around ~105vh, and "brisk" ones
+// (Santorini, London) move through in ~83vh — a shorter, quicker beat, per
+// the "sound-inspired visual rhythm" from the creative brief. See each
+// `range` tuple below.
+//
+// Prague and Iceland were added after the original 8 (see git history) —
+// rather than reshuffle the whole journey's order and re-tune every
+// existing chapter's carefully-set pacing, they're appended at the end,
+// preserving the original 8's absolute on-screen dwell time exactly
+// (each chapter's vh width is unchanged; only the total denominator grew).
+// Iceland closes the journey as the grand, slow finale — the edge of the
+// map — right before the interactive map/outro.
+export const JOURNEY_LENGTH_VH = 1342;
 
 export const DESTINATIONS: Destination[] = [
   {
@@ -61,7 +93,7 @@ export const DESTINATIONS: Destination[] = [
     index: 1,
     country: "FRANCE",
     city: "Paris",
-    range: [0.14, 0.265],
+    range: [0.115, 0.217],
     eyebrow: "01 / FRANCE",
     headline: ["PARIS", "IN MOTION"],
     micro: "A city that rehearses elegance until it looks effortless.",
@@ -89,13 +121,20 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Arrive an hour before sunset and let the light do the work.",
     bestSeason: "April – June, or September – October",
+    photoSrc: "/destinations/paris.jpg",
+    galleryPhotos: [
+      { src: "/paris/eiffel.jpg", aspect: 1.551, caption: "The Eiffel Tower, grass and blue sky" },
+      { src: "/paris/louvre.jpg", aspect: 1.904, caption: "The Louvre pyramid at daylight" },
+      { src: "/paris/notredame.jpg", aspect: 1.333, caption: "Notre-Dame's west façade and twin towers" },
+    ],
+    deepDiveHref: "/paris",
   },
   {
     id: "rome",
     index: 2,
     country: "ITALY",
     city: "Rome",
-    range: [0.265, 0.39],
+    range: [0.217, 0.32],
     eyebrow: "02 / ITALY",
     headline: ["TIME", "STANDS", "HERE"],
     micro: "A city where centuries remain visible in every street.",
@@ -123,13 +162,19 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Visit the ancient sites at opening time, before the heat and the crowds arrive together.",
     bestSeason: "April – May, or late September",
+    photoSrc: "/destinations/rome.jpg",
+    galleryPhotos: [
+      { src: "/destinations/rome-gallery-1.jpg", aspect: 1.905, caption: "The Colosseum, sun flaring over the top tier" },
+      { src: "/destinations/rome-gallery-2.jpg", aspect: 1.5, caption: "Trevi Fountain, empty at first light" },
+      { src: "/destinations/rome-gallery-3.jpg", aspect: 1.778, caption: "St. Peter's Basilica across an empty square" },
+    ],
   },
   {
     id: "santorini",
     index: 3,
     country: "GREECE",
     city: "Santorini",
-    range: [0.39, 0.465],
+    range: [0.32, 0.381],
     eyebrow: "03 / GREECE",
     headline: ["WHERE THE SKY", "MEETS THE SEA"],
     micro: "White walls, blue domes, and a horizon that never quite ends.",
@@ -147,7 +192,7 @@ export const DESTINATIONS: Destination[] = [
     overview:
       "Santorini's white walls and blue domes weren't chosen for postcards — they're a practical response to sun, wind, and a volcanic caldera that shapes everything built above it.",
     history:
-      "Formed by one of the largest volcanic eruptions in recorded history, the island's crescent shape is literally the rim of a collapsed caldera.",
+      "Formed by one of the largest volcanic eruptions in human history — the Bronze Age Minoan eruption — the island's crescent shape is literally the rim of a collapsed caldera.",
     culture:
       "Life here runs on the caldera's schedule — terraces fill an hour before sunset and empty an hour after, all at once.",
     highlights: [
@@ -157,13 +202,19 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Watch the sunset from the northern villages — the same view, a fraction of the crowd.",
     bestSeason: "Late May – June, or September",
+    photoSrc: "/destinations/santorini.jpg",
+    galleryPhotos: [
+      { src: "/destinations/santorini-gallery-1.jpg", aspect: 1.509, caption: "The blue-domed churches, town spilling down the hillside" },
+      { src: "/destinations/santorini-gallery-2.jpg", aspect: 0.666, caption: "Oia's windmills stacked along the clifftop" },
+      { src: "/destinations/santorini-gallery-3.jpg", aspect: 1.502, caption: "A shaded doorway, blue shutters, the sea beyond" },
+    ],
   },
   {
     id: "venice",
     index: 4,
     country: "ITALY",
     city: "Venice",
-    range: [0.465, 0.58],
+    range: [0.381, 0.475],
     eyebrow: "04 / ITALY",
     headline: ["FLOAT", "THROUGH", "HISTORY"],
     micro: "A city that gave up on streets and kept its beauty anyway.",
@@ -191,13 +242,19 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Walk the back canals at dawn, before the day's first boats stir the water.",
     bestSeason: "April – June, or late September – October",
+    photoSrc: "/destinations/venice.jpg",
+    galleryPhotos: [
+      { src: "/destinations/venice-gallery-1.jpg", aspect: 1.51, caption: "Rialto Bridge over Grand Canal traffic" },
+      { src: "/destinations/venice-gallery-2.jpg", aspect: 1.0, caption: "Gondolas and gondoliers mid-stroke on the Grand Canal" },
+      { src: "/destinations/venice-gallery-3.jpg", aspect: 1.498, caption: "St. Mark's Basilica, gold mosaics and spires" },
+    ],
   },
   {
     id: "alps",
     index: 5,
     country: "SWITZERLAND",
     city: "The Alps",
-    range: [0.58, 0.695],
+    range: [0.475, 0.57],
     eyebrow: "05 / SWITZERLAND",
     headline: ["ABOVE", "EVERYTHING"],
     micro: "Scale that makes every other view feel small by comparison.",
@@ -225,13 +282,19 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Go up at first light — the ridgelines catch color for only a few minutes.",
     bestSeason: "June – September for hiking, December – March for snow",
+    photoSrc: "/destinations/alps.jpg",
+    galleryPhotos: [
+      { src: "/destinations/alps-gallery-1.jpg", aspect: 1.791, caption: "A flower-draped Zermatt street, the Matterhorn behind" },
+      { src: "/destinations/alps-gallery-2.jpg", aspect: 1.778, caption: "An alpine valley town at sunrise, sun breaking over the peaks" },
+      { src: "/destinations/alps-gallery-3.jpg", aspect: 0.75, caption: "A quiet alpine street, flower balconies and gabled roofs" },
+    ],
   },
   {
     id: "london",
     index: 6,
     country: "UNITED KINGDOM",
     city: "London",
-    range: [0.695, 0.77],
+    range: [0.57, 0.631],
     eyebrow: "06 / UNITED KINGDOM",
     headline: ["WHERE PAST", "MEETS", "FUTURE"],
     micro: "Centuries of stone under a sky that never fully commits.",
@@ -259,13 +322,19 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Bring a coat regardless of the forecast — the sky changes its mind hourly.",
     bestSeason: "May – September",
+    photoSrc: "/destinations/london.jpg",
+    galleryPhotos: [
+      { src: "/destinations/london-gallery-1.jpg", aspect: 0.75, caption: "Big Ben's clock face against a deep blue sky" },
+      { src: "/destinations/london-gallery-2.jpg", aspect: 0.8, caption: "Notting Hill's pastel terraced houses" },
+      { src: "/destinations/london-gallery-3.jpg", aspect: 1.449, caption: "The London Eye across the Thames" },
+    ],
   },
   {
     id: "barcelona",
     index: 7,
     country: "SPAIN",
     city: "Barcelona",
-    range: [0.77, 0.865],
+    range: [0.631, 0.709],
     eyebrow: "07 / SPAIN",
     headline: ["DESIGNED", "TO BE", "DIFFERENT"],
     micro: "A city that let one architect's imagination reshape its skyline.",
@@ -288,18 +357,24 @@ export const DESTINATIONS: Destination[] = [
       "Evenings start late and stretch longer — dinner rarely begins before nine, and nobody treats that as unusual.",
     highlights: [
       "Facades that curve where the rest of the city goes straight",
-      "A cathedral still under construction after more than a century",
+      "A basilica whose towers only just topped out, after more than 140 years of building",
       "Balconies used as much as any room indoors",
     ],
     travelTip: "Visit the famous facades at opening time — the crowds triple by midday.",
     bestSeason: "May – June, or September – October",
+    photoSrc: "/destinations/barcelona.jpg",
+    galleryPhotos: [
+      { src: "/destinations/barcelona-gallery-1.jpg", aspect: 1.0, caption: "Sagrada Família, front façade and reflecting pool" },
+      { src: "/destinations/barcelona-gallery-2.jpg", aspect: 1.0, caption: "Park Güell's tiled terrace in golden light" },
+      { src: "/destinations/barcelona-gallery-3.jpg", aspect: 1.778, caption: "A Gothic Quarter alley strung with red bunting" },
+    ],
   },
   {
     id: "amsterdam",
     index: 8,
     country: "NETHERLANDS",
     city: "Amsterdam",
-    range: [0.865, 0.96],
+    range: [0.709, 0.787],
     eyebrow: "08 / NETHERLANDS",
     headline: ["MOVE WITH", "THE CITY"],
     micro: "Water, bicycles, and gabled houses leaning in to listen.",
@@ -327,6 +402,92 @@ export const DESTINATIONS: Destination[] = [
     ],
     travelTip: "Rent a bike for an afternoon — the city reveals itself differently at cycling speed.",
     bestSeason: "April (tulip season), or June – August",
+    photoSrc: "/destinations/amsterdam.jpg",
+    galleryPhotos: [
+      { src: "/destinations/amsterdam-gallery-1.jpg", aspect: 1.83, caption: "A row of narrow gabled canal houses in autumn light" },
+      { src: "/destinations/amsterdam-gallery-2.jpg", aspect: 1.0, caption: "Bicycles along a canal bridge railing" },
+      { src: "/destinations/amsterdam-gallery-3.jpg", aspect: 1.54, caption: "Amsterdam Centraal's twin-spired façade" },
+    ],
+  },
+  {
+    id: "prague",
+    index: 9,
+    country: "CZECH REPUBLIC",
+    city: "Prague",
+    range: [0.787, 0.865],
+    eyebrow: "09 / CZECH REPUBLIC",
+    headline: ["THE CLOCK", "NEVER", "STOPS"],
+    micro: "A skyline of spires that has told the same story for six hundred years.",
+    info: [
+      { label: "LOCATION", value: "PRAGUE / CZECH REPUBLIC" },
+      { label: "KNOWN FOR", value: "GREEN COPPER SPIRES" },
+      { label: "BEST EXPERIENCED", value: "AMBER DUSK" },
+    ],
+    atmosphere: "amber-glow",
+    sky: ["#1c170f", "#100d08"],
+    accent: "#7fa88f",
+    coordinates: { lat: 50.0755, lon: 14.4378 },
+    pace: "medium",
+    tagline: "A skyline that turned green with age, on purpose.",
+    overview:
+      "Prague's Gothic spires and Baroque domes were never restored back to shine — the copper roofs were left to oxidize into their now-famous patina, and the whole skyline reads as proof that time is allowed to show.",
+    history:
+      "Spared the leveling that reshaped so many European capitals after the wars, Prague kept its medieval street plan and skyline largely intact, layer laid on layer since the 14th century.",
+    culture:
+      "The astronomical clock on Old Town Hall has marked the hour the same way since 1410 — a small mechanical ritual the city still gathers to watch.",
+    highlights: [
+      "A 600-year-old astronomical clock that still keeps time",
+      "Copper domes and spires oxidized to a permanent green",
+      "A medieval street plan that survived the century intact",
+    ],
+    travelTip: "Cross the old stone bridge at sunrise, before the vendors and the crowds arrive.",
+    bestSeason: "April – May, or September – October",
+    photoSrc: "/destinations/prague.jpg",
+    galleryPhotos: [
+      { src: "/destinations/prague-gallery-1.jpg", aspect: 1.5, caption: "Charles Bridge, cobblestones and baroque statues" },
+      { src: "/destinations/prague-gallery-2.jpg", aspect: 1.779, caption: "Malá Strana's colorful facades and church towers" },
+      { src: "/destinations/prague-gallery-3.jpg", aspect: 0.668, caption: "The Prague Astronomical Clock face" },
+    ],
+  },
+  {
+    id: "iceland",
+    index: 10,
+    country: "ICELAND",
+    city: "Iceland",
+    range: [0.865, 0.967],
+    eyebrow: "10 / ICELAND",
+    headline: ["THE LAST", "WILD", "LIGHT"],
+    micro: "A landscape still being made — glaciers, geysers, and a sky that glows on its own schedule.",
+    info: [
+      { label: "LOCATION", value: "ICELAND" },
+      { label: "KNOWN FOR", value: "AURORA & GLACIERS" },
+      { label: "BEST EXPERIENCED", value: "POLAR NIGHT" },
+    ],
+    atmosphere: "aurora",
+    sky: ["#0a1410", "#050706"],
+    accent: "#4fd1a5",
+    coordinates: { lat: 64.9631, lon: -19.0208 },
+    pace: "slow",
+    tagline: "Where the ground still decides what to become.",
+    overview:
+      "Iceland sits on the seam between two tectonic plates, and it shows — glaciers grind over active volcanoes, geysers vent straight through moss-covered lava, and on a clear night the sky answers with its own color.",
+    history:
+      "Settled late by European standards and shaped almost entirely by geology rather than empire, Iceland's landscape has spent longer being formed than being inhabited.",
+    culture:
+      "Distance from anywhere else made self-reliance a habit long before it became a marketing word — small population, short summers, and a sky that runs the calendar as much as any clock.",
+    highlights: [
+      "Aurora borealis on clear nights through the darker months",
+      "Glaciers still visibly carving the land beneath them",
+      "Geothermal vents and hot springs breaking through black lava fields",
+    ],
+    travelTip: "Give the aurora at least three clear nights — one lucky sighting beats a rigid one-night itinerary.",
+    bestSeason: "September – March for aurora, June – August for the midnight sun",
+    photoSrc: "/destinations/iceland.jpg",
+    galleryPhotos: [
+      { src: "/destinations/iceland-gallery-1.jpg", aspect: 1.498, caption: "Reynisfjara's black-sand beach and basalt sea stacks" },
+      { src: "/destinations/iceland-gallery-2.jpg", aspect: 1.51, caption: "Seljalandsfoss, a waterfall you can walk behind" },
+      { src: "/destinations/iceland-gallery-3.jpg", aspect: 1.5, caption: "Seyðisfjörður's rainbow street, mountains behind" },
+    ],
   },
 ];
 
@@ -336,15 +497,21 @@ export const DESTINATIONS: Destination[] = [
  * `mapStart` was originally 0.96, giving the interactive map an ~0.8%-of-
  * scroll window (under 9vh) to fade in, hold, and fade out again — too
  * narrow to reliably land on with a mouse wheel or a swipe. It now opens
- * earlier, inside the last few vh of Amsterdam's dwell, giving it a full
- * ~2%-of-scroll window (~22vh) before `outroStart`. `outroStart` stays at
- * 0.97 to match EndSequence's own internal fade-in start.
+ * earlier, inside the last few vh of a chapter's dwell (Amsterdam's,
+ * originally — now Iceland's, the new final chapter), giving it a full
+ * ~2%-of-scroll window before `outroStart`.
+ *
+ * All four marks below were rescaled when Prague and Iceland extended the
+ * journey from 1100vh to 1342vh (see JOURNEY_LENGTH_VH) — each keeps the
+ * exact same absolute vh offset it had before (heroEnd at 88vh, descentEnd
+ * at 154vh, mapStart 5.5vh before the last chapter's end, outroStart 11vh
+ * after it), just expressed as a fraction of the new, longer total.
  */
 export const JOURNEY_MARKS = {
-  heroEnd: 0.08,
-  descentEnd: 0.14,
-  mapStart: 0.955,
-  outroStart: 0.97,
+  heroEnd: 0.066,
+  descentEnd: 0.115,
+  mapStart: 0.963,
+  outroStart: 0.975,
 };
 
 export function destinationForProgress(p: number): Destination | null {
@@ -353,4 +520,26 @@ export function destinationForProgress(p: number): Destination | null {
 
 export function getDestinationById(id: string): Destination | undefined {
   return DESTINATIONS.find((d) => d.id === id);
+}
+
+/**
+ * Great-circle distance between two decimal-degree coordinates, in
+ * kilometers (haversine formula, Earth radius 6371km). Used by the
+ * /journeys route builder to show a real straight-line distance between
+ * consecutive stops — not a driving/flight distance, just an honest "as
+ * the crow flies" figure consistent with this site's "every value shown
+ * is real data" rule (see DestinationSpecimenFrame's coordinate stamps).
+ */
+export function haversineKm(
+  a: { lat: number; lon: number },
+  b: { lat: number; lon: number }
+): number {
+  const R = 6371;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }

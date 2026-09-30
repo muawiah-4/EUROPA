@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import CustomCursor from "@/components/CustomCursor";
 import AmbientBackground from "@/components/AmbientBackground";
 import MotionProvider from "@/components/MotionProvider";
+import { analyticsConfig } from "@/lib/analytics";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_OG_IMAGE,
@@ -48,6 +50,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           {children}
         </MotionProvider>
+        {/* Opt-in, cookieless Umami — rendered only when NEXT_PUBLIC_UMAMI_WEBSITE_ID is set. */}
+        {analyticsConfig && (
+          <Script
+            src={analyticsConfig.scriptUrl}
+            data-website-id={analyticsConfig.websiteId}
+            data-do-not-track="true"
+            {...(analyticsConfig.domain ? { "data-domains": analyticsConfig.domain } : {})}
+            strategy="afterInteractive"
+            defer
+          />
+        )}
       </body>
     </html>
   );

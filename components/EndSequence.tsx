@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import { DESTINATIONS } from "@/lib/journey";
 import MagneticButton from "@/components/MagneticButton";
+import { track } from "@/lib/analytics";
 
 export default function EndSequence({
   progress,
@@ -101,6 +102,7 @@ export default function EndSequence({
           <MagneticButton pullRatio={0.35}>
             <Link
               href="/journeys"
+              onClick={() => track("plan_route_click", { source: "end_sequence" })}
               tabIndex={interactive ? 0 : -1}
               data-cursor="link"
               className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"

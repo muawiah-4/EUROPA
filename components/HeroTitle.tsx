@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
+import { track } from "@/lib/analytics";
 
 export default function HeroTitle({
   progress,
@@ -72,6 +73,7 @@ export default function HeroTitle({
       >
         <Link
           href="/journeys"
+          onClick={() => track("plan_route_click", { source: "hero" })}
           tabIndex={linkInteractive ? 0 : -1}
           aria-hidden={!linkInteractive}
           data-cursor="link"

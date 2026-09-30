@@ -8,6 +8,7 @@ import { getDestination, haversineKm, type DestinationId } from "@/lib/journey";
 import { STOPS_PARAM, parseStops, stopsQuery, toRouteOrder } from "@/lib/routeStops";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, STAY_DURATIONS, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
+import { track } from "@/lib/analytics";
 
 // All ten stops, precomputed once — the builder always shows every city as
 // a clickable option; only *which of them are selected* changes.
@@ -89,13 +90,16 @@ function RouteBuilder({
   const gradientIdBase = useId();
   const linkFieldId = useId();
 
-  const toggle = (id: DestinationId) =>
+  const toggle = (id: DestinationId) => {
+    // Tracked outside the updater, which Strict Mode may run twice.
+    track(selected.has(id) ? "route_stop_removed" : "route_stop_added", { destination: id });
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+  };
 
   // Selection order is whatever order the user happened to click in, but
   // the route itself is always drawn in real geographic order (the same
@@ -160,8 +164,10 @@ function RouteBuilder({
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
       await navigator.clipboard.writeText(url);
       setCopyState("copied");
+      track("route_copy_link", { stops: routeIds.length, result: "copied" });
     } catch {
       setCopyState("manual");
+      track("route_copy_link", { stops: routeIds.length, result: "manual" });
     }
   };
 

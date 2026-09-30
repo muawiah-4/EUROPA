@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll, useSpring, type MotionValue } from "framer-motion";
 import { DESTINATIONS, JOURNEY_LENGTH_VH, JOURNEY_MARKS } from "@/lib/journey";
+import { track } from "@/lib/analytics";
 import {
   StoryChapterBackground,
   StoryChapterForeground,
@@ -50,6 +51,16 @@ export default function JourneyExperience() {
     const target = containerTop + Math.min(1, Math.max(0, fraction)) * scrollRange;
     window.scrollTo({ top: target, behavior: "smooth" });
   }, []);
+
+  // Report each destination chapter once per page view as the scroll reaches
+  // it. Reads the raw scroll (not the spring) so it reflects where the user is.
+  const reachedChaptersRef = useRef(new Set<number>());
+  useMotionValueEvent(rawProgress, "change", (p) => {
+    const idx = chapterIndexForProgress(p);
+    if (idx < 0 || reachedChaptersRef.current.has(idx)) return;
+    reachedChaptersRef.current.add(idx);
+    track("journey_chapter_reached", { destination: DESTINATIONS[idx].id, chapter: idx + 1 });
+  });
 
   const restart = useCallback(() => scrollToFraction(0), [scrollToFraction]);
 

@@ -52,6 +52,27 @@ lib/                 Destination data, geography helpers, journey/travel-time lo
 public/              Destination photography, gallery images, maps
 ```
 
+## Analytics (optional)
+
+Off by default: with no env vars set there is no analytics script, no CSP
+change and no network call. To enable [Umami](https://umami.is) (cookieless,
+no personal data), set these at build time (see `.env.example`):
+
+| Env var                        | Default                            |
+| ------------------------------ | ---------------------------------- |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | unset (analytics off); must be a UUID |
+| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | `https://cloud.umami.is/script.js` (https only, or `http://localhost` for self-hosted dev) |
+
+When enabled, the script origin is added to `script-src` and `connect-src`
+(plus `https://gateway.umami.is`, where Umami Cloud sends events). The tracker
+respects Do Not Track, and is limited to `NEXT_PUBLIC_SITE_URL`'s hostname
+when that is set. Custom events (no free text; see `lib/analytics.ts`):
+
+- `journey_chapter_reached` — `destination` id, `chapter` number; once each per page view
+- `route_stop_added` / `route_stop_removed` — `destination` id
+- `route_copy_link` — `stops` count, `result` (copied/manual)
+- `plan_route_click` — `source` (hero/end_sequence)
+
 ## Credits
 
 - Photography sourced from [Unsplash](https://unsplash.com/license) and [Pexels](https://www.pexels.com/license/) under their respective free licences. Individual photographer credits weren't recorded.

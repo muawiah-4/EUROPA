@@ -74,7 +74,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [-6, 0, 2],
     height: 6.2,
     range: iconRanges[0],
-    photo: "/paris/eiffel.jpg",
+    photo: "/paris/eiffel.webp",
     aspect: 1.551,
   },
   {
@@ -85,7 +85,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [1, 0, -2],
     height: 1.9,
     range: iconRanges[1],
-    photo: "/paris/louvre.jpg",
+    photo: "/paris/louvre.webp",
     aspect: 1.904,
   },
   {
@@ -96,7 +96,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [-3, 0, -3],
     height: 2.3,
     range: iconRanges[2],
-    photo: "/paris/arc.jpg",
+    photo: "/paris/arc.webp",
     aspect: 1.498,
   },
   {
@@ -107,7 +107,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [4, 0, 0],
     height: 3.0,
     range: iconRanges[3],
-    photo: "/paris/notredame.jpg",
+    photo: "/paris/notredame.webp",
     aspect: 1.333,
   },
   {
@@ -118,7 +118,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [0, 3, -6],
     height: 3.6,
     range: iconRanges[4],
-    photo: "/paris/sacrecoeur.jpg",
+    photo: "/paris/sacrecoeur.webp",
     aspect: 1.776,
   },
   {
@@ -129,7 +129,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [-1, 0, -4.5],
     height: 2.1,
     range: iconRanges[5],
-    photo: "/paris/garnier.jpg",
+    photo: "/paris/garnier.webp",
     aspect: 1.6,
   },
   {
@@ -140,7 +140,7 @@ export const PARIS_LANDMARKS: ParisLandmark[] = [
     position: [-4.5, 0, 1],
     height: 1.3,
     range: iconRanges[6],
-    photo: "/paris/pont.jpg",
+    photo: "/paris/pont.webp",
     aspect: 1.294,
   },
 ];
@@ -153,7 +153,7 @@ export const PARIS_NEIGHBORHOODS: ParisNeighborhood[] = [
     position: [0, 3, -6],
     height: 3.6,
     range: neighborhoodRanges[0],
-    photo: "/paris/montmartre.jpg",
+    photo: "/paris/montmartre.webp",
     aspect: 1.5,
   },
   {
@@ -163,7 +163,7 @@ export const PARIS_NEIGHBORHOODS: ParisNeighborhood[] = [
     position: [3, 0, -1],
     height: 1.6,
     range: neighborhoodRanges[1],
-    photo: "/paris/marais.jpg",
+    photo: "/paris/marais.webp",
     aspect: 0.799,
   },
   {
@@ -173,7 +173,7 @@ export const PARIS_NEIGHBORHOODS: ParisNeighborhood[] = [
     position: [3, 0, 2.2],
     height: 1.7,
     range: neighborhoodRanges[2],
-    photo: "/paris/latin.jpg",
+    photo: "/paris/latin.webp",
     aspect: 1.5,
   },
   {
@@ -183,7 +183,7 @@ export const PARIS_NEIGHBORHOODS: ParisNeighborhood[] = [
     position: [0, 0, 3.2],
     height: 2.0,
     range: neighborhoodRanges[3],
-    photo: "/paris/germain.jpg",
+    photo: "/paris/germain.webp",
     aspect: 1.333,
   },
 ];

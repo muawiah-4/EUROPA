@@ -14,7 +14,7 @@ export const DEFAULT_TITLE = "EUROPA — Europe, Beyond the Postcard";
 export const DEFAULT_DESCRIPTION =
   "An interactive, scroll-driven concept journey through ten of Europe's most unforgettable places — from Paris to Iceland.";
 
-/** Confirmed present at public/destinations/paris.jpg */
+/** Confirmed present at public/paris/louvre.jpg — keep it JPEG (social crawlers). */
 export const DEFAULT_OG_IMAGE = "/paris/louvre.jpg";
 export const DEFAULT_OG_IMAGE_ALT = "The Louvre pyramid at daylight";
 

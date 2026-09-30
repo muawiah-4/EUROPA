@@ -37,10 +37,11 @@ The site runs on port 3001 locally; `lib/site.ts` defaults `SITE_URL` to `http:/
 ```bash
 npm run typecheck   # tsc --noEmit
 npm run lint        # next lint (next/core-web-vitals)
+npm test            # vitest run (unit tests in tests/, node env)
 npm run build       # production build
 ```
 
-CI (`.github/workflows/ci.yml`) runs all three on every push and pull request to `main`.
+CI (`.github/workflows/ci.yml`) runs all four on every push and pull request to `main`.
 
 ## Project structure
 

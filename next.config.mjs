@@ -38,6 +38,8 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Lint the test suite too (next lint skips tests/ by default).
+  eslint: { dirs: ["app", "components", "lib", "tests"] },
   // next/image is used with local /public images only — keep the optimizer,
   // but never allow remote sources.
   images: { remotePatterns: [] },

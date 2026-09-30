@@ -88,7 +88,7 @@ export default function EndSequence({
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton>
+          <MagneticButton pullRatio={0.35}>
             <button
               onClick={onRestart}
               tabIndex={interactive ? 0 : -1}
@@ -98,7 +98,7 @@ export default function EndSequence({
               Explore again
             </button>
           </MagneticButton>
-          <MagneticButton>
+          <MagneticButton pullRatio={0.35}>
             <Link
               href="/journeys"
               tabIndex={interactive ? 0 : -1}
@@ -108,7 +108,7 @@ export default function EndSequence({
               Plan your route
             </Link>
           </MagneticButton>
-          <MagneticButton>
+          <MagneticButton pullRatio={0.35}>
             <Link
               href="/destinations"
               tabIndex={interactive ? 0 : -1}

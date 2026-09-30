@@ -23,7 +23,7 @@ export default function JourneysPage() {
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pb-16 pt-32 md:px-10 md:pb-24 md:pt-40">
         <JourneyHeroCollage />
-        <GhostHeading align="left" className="-top-2 opacity-70 md:top-2">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="-top-2 opacity-70 md:top-2">
           JOURNEYS
         </GhostHeading>
         <div className="relative mx-auto max-w-3xl">

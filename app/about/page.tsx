@@ -115,7 +115,7 @@ export default function AboutPage() {
           })}
         </div>
 
-        <GhostHeading align="left" className="-top-4 opacity-60 md:top-0">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="-top-4 opacity-60 md:top-0">
           ABOUT
         </GhostHeading>
 

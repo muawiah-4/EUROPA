@@ -7,6 +7,7 @@ import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
 import { EUROPE_POINTS } from "@/lib/europeGeo";
 import { DESTINATIONS, JOURNEY_MARKS } from "@/lib/journey";
+import WebGLErrorBoundary from "@/components/WebGLErrorBoundary";
 
 // The globe is only uncovered during the hero + cloud descent (until the
 // opaque journey gradient stage has faded in over the first chapter) and
@@ -428,14 +429,32 @@ export default function GlobeHero({ progress }: { progress: MotionValue<number> 
 
   return (
     <div className="absolute inset-0">
-      <Canvas
-        frameloop={visible ? "always" : "never"}
-        dpr={[1, 1.6]}
-        gl={{ antialias: true, alpha: true }}
-        camera={{ position: [0, 0.4, 6.4], fov: 42 }}
-      >
-        <Globe progressRef={progressRef} />
-      </Canvas>
+      <WebGLErrorBoundary fallback={<GlobeFallback />}>
+        <Canvas
+          frameloop={visible ? "always" : "never"}
+          dpr={[1, 1.6]}
+          gl={{ antialias: true, alpha: true }}
+          camera={{ position: [0, 0.4, 6.4], fov: 42 }}
+        >
+          <Globe progressRef={progressRef} />
+        </Canvas>
+      </WebGLErrorBoundary>
+    </div>
+  );
+}
+
+// Static stand-in when WebGL is unavailable: the same near-black sphere
+// with a warm SUN_TINT limb glow, drawn with CSS gradients.
+function GlobeFallback() {
+  return (
+    <div aria-hidden className="absolute inset-0 flex items-center justify-center">
+      <div
+        className="aspect-square w-[min(80vw,80vh)] rounded-full"
+        style={{
+          background: "radial-gradient(circle at 62% 38%, #16171a 0%, #0a0b0d 58%)",
+          boxShadow: `0 0 80px 6px ${SUN_TINT}33, inset -18px 10px 60px ${SUN_TINT}22`,
+        }}
+      />
     </div>
   );
 }

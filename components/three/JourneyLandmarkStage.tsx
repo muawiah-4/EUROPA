@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import WebGLErrorBoundary from "@/components/WebGLErrorBoundary";
 import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
 import { destinationForProgress } from "@/lib/journey";
@@ -72,12 +73,15 @@ export default function JourneyLandmarkStage({ progress }: { progress: MotionVal
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: [0, -0.1, 6.2], fov: 36 }}>
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[3, 4, 3]} intensity={0.85} color="#f2e6cf" />
-        <directionalLight position={[-3, -1, -2]} intensity={0.08} color="#3a3e44" />
-        <Stage progressRef={progressRef} />
-      </Canvas>
+      {/* Purely decorative layer — with no WebGL it simply isn't drawn. */}
+      <WebGLErrorBoundary>
+        <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: [0, -0.1, 6.2], fov: 36 }}>
+          <ambientLight intensity={0.3} />
+          <directionalLight position={[3, 4, 3]} intensity={0.85} color="#f2e6cf" />
+          <directionalLight position={[-3, -1, -2]} intensity={0.08} color="#3a3e44" />
+          <Stage progressRef={progressRef} />
+        </Canvas>
+      </WebGLErrorBoundary>
     </div>
   );
 }

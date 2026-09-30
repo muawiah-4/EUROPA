@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import WebGLErrorBoundary from "@/components/WebGLErrorBoundary";
 
 /**
  * Data-only shape recipe for one landmark. Deliberately restricted to
@@ -255,12 +256,22 @@ export default function FloatingLandmark({
 }) {
   return (
     <div className="absolute inset-0" style={interactive ? { touchAction: "none" } : undefined}>
-      <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: [0, -0.1, 6.2], fov: 36 }}>
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[3, 4, 3]} intensity={0.85} color="#f2e6cf" />
-        <directionalLight position={[-3, -1, -2]} intensity={0.08} color="#3a3e44" />
-        <LandmarkObject shapes={shapes} accent={accent} interactive={interactive} />
-      </Canvas>
+      <WebGLErrorBoundary
+        fallback={
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{ background: `radial-gradient(ellipse at 50% 55%, ${accent}33, transparent 60%)` }}
+          />
+        }
+      >
+        <Canvas dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }} camera={{ position: [0, -0.1, 6.2], fov: 36 }}>
+          <ambientLight intensity={0.3} />
+          <directionalLight position={[3, 4, 3]} intensity={0.85} color="#f2e6cf" />
+          <directionalLight position={[-3, -1, -2]} intensity={0.08} color="#3a3e44" />
+          <LandmarkObject shapes={shapes} accent={accent} interactive={interactive} />
+        </Canvas>
+      </WebGLErrorBoundary>
     </div>
   );
 }

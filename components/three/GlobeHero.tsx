@@ -46,11 +46,15 @@ const CITY_MARKERS: { lat: number; lon: number; color: string }[] = [
   { lat: 64.96, lon: -19.02, color: MARKER_COLOR }, // Iceland — sits apart from the cluster, geographically honest
 ];
 
-// The globe's single "sun" tint — reused verbatim from the Paris marker
-// color so the atmosphere glow never introduces a hue outside the existing
-// per-destination accent palette. Paris is also the first chapter the hero
-// dollies into, so a golden-hour rim glow reads as a deliberate handoff.
-const SUN_TINT = "#e8c07a";
+// The globe's glow tints — all derived from the site's single mint accent
+// (--mint / #3bba9c) so the hero ring matches the logo and markers instead
+// of introducing a warm hue. SUN_TINT is a lighter mint for the fresnel
+// limb, where additive blending over near-black needs extra luminance to
+// read as a glow rather than a flat outline; the ambient halo and the CSS
+// fallback's inner shade use the base and a deeper mint respectively.
+const SUN_TINT = "#7fdcc4";
+const HALO_TINT = MARKER_COLOR;
+const MINT_DEEP = "#1f7a64";
 
 function toVec3(lat: number, lon: number, r: number) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -325,7 +329,7 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
   return (
     <>
       <ambientLight intensity={0.06} />
-      <directionalLight position={sunPosition} intensity={1.3} color="#f2e6cf" />
+      <directionalLight position={sunPosition} intensity={1.3} color="#e4f3ee" />
       <directionalLight position={[-sunPosition[0], -sunPosition[1] * 0.5, -sunPosition[2]]} intensity={0.05} color="#3a3e44" />
 
       <group ref={group}>
@@ -407,7 +411,7 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
         <sprite scale={[6.4, 6.4, 1]}>
           <spriteMaterial
             map={glowTexture}
-            color={SUN_TINT}
+            color={HALO_TINT}
             transparent
             opacity={0.1}
             depthWrite={false}
@@ -444,7 +448,7 @@ export default function GlobeHero({ progress }: { progress: MotionValue<number> 
 }
 
 // Static stand-in when WebGL is unavailable: the same near-black sphere
-// with a warm SUN_TINT limb glow, drawn with CSS gradients.
+// with the same mint limb glow, drawn with CSS gradients.
 function GlobeFallback() {
   return (
     <div aria-hidden className="absolute inset-0 flex items-center justify-center">
@@ -452,7 +456,7 @@ function GlobeFallback() {
         className="aspect-square w-[min(80vw,80vh)] rounded-full"
         style={{
           background: "radial-gradient(circle at 62% 38%, #16171a 0%, #0a0b0d 58%)",
-          boxShadow: `0 0 80px 6px ${SUN_TINT}33, inset -18px 10px 60px ${SUN_TINT}22`,
+          boxShadow: `0 0 80px 6px ${HALO_TINT}40, 0 0 24px 1px ${SUN_TINT}33, inset -18px 10px 60px ${MINT_DEEP}33`,
         }}
       />
     </div>

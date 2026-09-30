@@ -90,21 +90,23 @@ export type TravelEstimate = { hours: number; mode: TravelMode };
 
 // Not a routing API — an editorial judgment call on how long each leg
 // plausibly takes door-to-door, the same spirit as STAY_DURATIONS above.
-// Under ~600km (this journey's own legs split cleanly around there, from
-// 344km up to 2,945km) is treated as a train/car hop at a realistic
-// average of 90km/h — well under highway top speed once stations, transfers
-// and border crossings are counted. Past that, it's a flight: a 750km/h
-// cruise plus a flat 2.5-hour overhead on *each* end (check-in, security,
-// boarding, deplaning, baggage) — which is why even a relatively short
-// "as the crow flies" hop still costs a half-day once you're flying it.
-const TRAIN_FLIGHT_THRESHOLD_KM = 600;
+// Both options are costed for every leg and the faster one wins: a
+// train/car hop at a realistic average of 90km/h (well under highway top
+// speed once stations, transfers and border crossings are counted), or a
+// flight at a 750km/h cruise plus a flat 2.5-hour overhead on *each* end
+// (check-in, security, boarding, deplaning, baggage) — which is why even a
+// relatively short "as the crow flies" hop still costs a half-day once
+// you're flying it. Picking the minimum (rather than a fixed distance
+// cutoff) keeps the estimate monotonic: a longer leg never shows a shorter
+// time than a shorter one. The two break even at roughly 510km.
 const TRAIN_SPEED_KMH = 90;
 const FLIGHT_CRUISE_KMH = 750;
 const FLIGHT_OVERHEAD_HOURS_PER_END = 2.5;
 
 export function estimateTravelTime(km: number): TravelEstimate {
-  if (km <= TRAIN_FLIGHT_THRESHOLD_KM) {
-    return { hours: km / TRAIN_SPEED_KMH, mode: "train" };
-  }
-  return { hours: km / FLIGHT_CRUISE_KMH + FLIGHT_OVERHEAD_HOURS_PER_END * 2, mode: "flight" };
+  const trainHours = km / TRAIN_SPEED_KMH;
+  const flightHours = km / FLIGHT_CRUISE_KMH + FLIGHT_OVERHEAD_HOURS_PER_END * 2;
+  return trainHours <= flightHours
+    ? { hours: trainHours, mode: "train" }
+    : { hours: flightHours, mode: "flight" };
 }

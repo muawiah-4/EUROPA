@@ -1,10 +1,10 @@
 node_modules
 .next
 out
-.env*.local
 .DS_Store
 next-env.d.ts
 .scratch
 tsconfig.tsbuildinfo
-.env
 *.tsbuildinfo
+.env*
+!.env.example

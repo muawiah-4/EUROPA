@@ -41,7 +41,26 @@ export function useChapterOpacity(
 // gets its own much narrower crossfade so the swap stays crisp and legible.
 export const TEXT_HALF_WIDTH = 0.004;
 
-export function StoryChapterBackground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
+export function StoryChapterBackground({
+  destination,
+  opacity,
+  active = true,
+  loadPhoto = true,
+  priority = false,
+}: {
+  destination: Destination;
+  opacity: MotionValue<number>;
+  /** Whether this chapter is currently visible — gates the particle loop. */
+  active?: boolean;
+  /**
+   * Whether the photo should be requested yet. Every chapter is stacked in
+   * the same sticky viewport, so native lazy-loading sees all ten as
+   * in-view; the journey instead flips this on for the active chapter and
+   * its neighbours only.
+   */
+  loadPhoto?: boolean;
+  priority?: boolean;
+}) {
   // The flat linear-gradient sky div that used to live here is gone — the
   // homepage's shared JourneyGradientStage now paints the animated
   // equivalent underneath every chapter (see JourneyExperience.tsx). Every
@@ -55,13 +74,14 @@ export function StoryChapterBackground({ destination, opacity }: { destination: 
   // page's quieter one.
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
-      {destination.photoSrc && (
+      {destination.photoSrc && loadPhoto && (
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={destination.photoSrc}
             alt=""
             fill
             sizes="100vw"
+            priority={priority}
             className="object-cover"
             style={{ filter: "grayscale(0.08) sepia(0.06) saturate(1.05) brightness(0.72) contrast(1.05)" }}
           />
@@ -86,7 +106,7 @@ export function StoryChapterBackground({ destination, opacity }: { destination: 
           />
         </div>
       )}
-      <AtmosphereParticles kind={destination.atmosphere} />
+      <AtmosphereParticles kind={destination.atmosphere} active={active} />
     </motion.div>
   );
 }

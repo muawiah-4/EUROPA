@@ -24,6 +24,10 @@ const START = DESTINATIONS[0].range[0];
 const END = DESTINATIONS[DESTINATIONS.length - 1].range[1];
 const FADE = 0.02;
 
+function isStageVisible(p: number) {
+  return p > START - FADE && p < END + FADE;
+}
+
 /**
  * Single shared animated background for the whole scroll journey, replacing
  * every chapter's flat `linear-gradient(sky[0], sky[1])` div with one
@@ -74,7 +78,9 @@ export default function JourneyGradientStage({ progress }: { progress: MotionVal
       offsetBottom: -0.5,
     });
 
-    gradient.start();
+    // Only animate while the stage is at least partly visible — outside
+    // [START - FADE, END + FADE] its opacity is 0.
+    if (isStageVisible(progress.get())) gradient.start();
     gradientRef.current = gradient;
 
     return () => {
@@ -82,9 +88,15 @@ export default function JourneyGradientStage({ progress }: { progress: MotionVal
       if (containerRef.current?.contains(canvas)) containerRef.current.removeChild(canvas);
       gradientRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useMotionValueEvent(progress, "change", (p) => {
+    const gradient = gradientRef.current;
+    if (gradient) {
+      if (isStageVisible(p)) gradient.start();
+      else gradient.pause();
+    }
     const d = destinationForProgress(p);
     if (!d || !gradientRef.current || d.id === activeIdRef.current) return;
     activeIdRef.current = d.id;

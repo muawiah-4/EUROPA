@@ -1,11 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
 import { EUROPE_POINTS } from "@/lib/europeGeo";
+import { DESTINATIONS, JOURNEY_MARKS } from "@/lib/journey";
+
+// The globe is only uncovered during the hero + cloud descent (until the
+// opaque journey gradient stage has faded in over the first chapter) and
+// again briefly at the very end, between that stage fading out and the
+// opaque outro covering everything. Outside those windows the canvas stops
+// rendering entirely (frameloop "never") — it stays mounted, so there's no
+// remount flash scrolling back, and simply keeps its last frame.
+const COVER_FADE = 0.02;
+const COVER_START = DESTINATIONS[0].range[0] + COVER_FADE;
+const COVER_END = DESTINATIONS[DESTINATIONS.length - 1].range[1] - COVER_FADE;
+const OUTRO_OPAQUE = JOURNEY_MARKS.outroStart + 0.02;
+
+function isGlobeVisible(p: number) {
+  return p < COVER_START || (p > COVER_END && p < OUTRO_OPAQUE);
+}
 
 // Major destinations get a brighter marker point, matching the journey data.
 // One shared mint marker color, not a per-destination accent palette — the
@@ -272,8 +288,11 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state, rawDelta) => {
     const reduced = reducedMotionRef.current;
+    // The frame loop is paused while the globe is covered; clamp the first
+    // delta after resuming so rotation doesn't jump by the whole pause.
+    const delta = Math.min(rawDelta, 0.1);
 
     if (group.current) {
       group.current.rotation.y += delta * (reduced ? 0.006 : 0.045);
@@ -401,13 +420,16 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
 
 export default function GlobeHero({ progress }: { progress: MotionValue<number> }) {
   const progressRef = useRef(0);
+  const [visible, setVisible] = useState(() => isGlobeVisible(progress.get()));
   useMotionValueEvent(progress, "change", (v) => {
     progressRef.current = v;
+    setVisible(isGlobeVisible(v));
   });
 
   return (
     <div className="absolute inset-0">
       <Canvas
+        frameloop={visible ? "always" : "never"}
         dpr={[1, 1.6]}
         gl={{ antialias: true, alpha: true }}
         camera={{ position: [0, 0.4, 6.4], fov: 42 }}

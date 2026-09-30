@@ -27,9 +27,14 @@ export function useChapterOpacity(
 ) {
   const [s, e] = range;
   const hw = halfWidth ?? Math.min(0.018, (e - s) / 4);
-  if (isFirst) return useTransform(progress, [s, e - hw, e + hw], [1, 1, 0]);
-  if (isLast) return useTransform(progress, [s - hw, s + hw, e], [0, 1, 1]);
-  return useTransform(progress, [s - hw, s + hw, e - hw, e + hw], [0, 1, 1, 0]);
+  // Keyframes are chosen up front so useTransform is called unconditionally
+  // (rules of hooks) — first chapter has no fade-in, last has no fade-out.
+  const [input, output] = isFirst
+    ? [[s, e - hw, e + hw], [1, 1, 0]]
+    : isLast
+      ? [[s - hw, s + hw, e], [0, 1, 1]]
+      : [[s - hw, s + hw, e - hw, e + hw], [0, 1, 1, 0]];
+  return useTransform(progress, input, output);
 }
 
 // Headline/copy sits in the same fixed screen position across every

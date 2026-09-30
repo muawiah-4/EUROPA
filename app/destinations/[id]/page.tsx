@@ -58,8 +58,9 @@ function placeName(destination: Destination): string {
   return destination.city.toLowerCase() === country.toLowerCase() ? destination.city : `${destination.city}, ${country}`;
 }
 
-export function generateMetadata({ params }: { params: { id: string } }): Metadata {
-  const destination = getDestinationById(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const destination = getDestinationById(id);
   // Unknown ids render notFound(): keep them out of the index, no canonical.
   if (!destination) return { robots: { index: false, follow: false } };
 
@@ -79,8 +80,9 @@ export function generateMetadata({ params }: { params: { id: string } }): Metada
   });
 }
 
-export default function DestinationPage({ params }: { params: { id: string } }) {
-  const destination = getDestinationById(params.id);
+export default async function DestinationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const destination = getDestinationById(id);
   if (!destination) notFound();
 
   const KineticWordmark = KINETIC_WORDMARKS[destination.id];

@@ -2,7 +2,7 @@
 
 A scroll-driven concept travel site exploring ten European destinations — Paris, Rome, Santorini, Venice, The Alps, London, Barcelona, Amsterdam, Prague, and Iceland. It isn't a booking platform or affiliated with any destination shown; it's a design and motion showcase built to see how far mood, restraint, and rhythm can carry a screen. Ten places. One goes deeper: every destination is shown through real photography graded toward its own palette, and Paris alone gets a standalone deep-dive at `/paris`.
 
-Built with Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, and Three.js (via React Three Fiber + Drei) for the opening 3D globe and the `/paris` scene.
+Built with Next.js 15 (App Router) on React 19, TypeScript, Tailwind CSS, Framer Motion, and Three.js (via React Three Fiber 9 + Drei 10) for the opening 3D globe and the `/paris` scene.
 
 ## Pages
 

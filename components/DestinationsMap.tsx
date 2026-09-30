@@ -3,10 +3,10 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { DESTINATIONS, haversineKm } from "@/lib/journey";
+import { DESTINATIONS, getDestination, haversineKm } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 
-const ROUTE = JOURNEY_ROUTE_ORDER.map((id) => DESTINATIONS.find((d) => d.id === id)!).filter(Boolean);
+const ROUTE = JOURNEY_ROUTE_ORDER.map(getDestination);
 
 // Real bounding box this projection covers (see lib/europeGeo.ts) — shown
 // verbatim in the plate stamp so the "real coordinates" claim is checkable,

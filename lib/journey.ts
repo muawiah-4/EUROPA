@@ -10,8 +10,30 @@ export type AtmosphereKind =
   | "amber-glow"
   | "aurora";
 
+/**
+ * The single source of truth for which destinations exist. Everything else
+ * keyed by destination — DESTINATIONS below, lib/europeGeo.ts's route order
+ * and stay durations, the detail page's kinetic wordmark table — is typed
+ * against `DestinationId`, so a typo or a missing entry fails type-checking
+ * instead of surfacing as an `undefined` lookup at runtime.
+ */
+export const DESTINATION_IDS = [
+  "paris",
+  "rome",
+  "santorini",
+  "venice",
+  "alps",
+  "london",
+  "barcelona",
+  "amsterdam",
+  "prague",
+  "iceland",
+] as const;
+
+export type DestinationId = (typeof DESTINATION_IDS)[number];
+
 export type Destination = {
-  id: string;
+  id: DestinationId;
   index: number; // 1-based, for the progress rail
   country: string;
   city: string;
@@ -518,8 +540,24 @@ export function destinationForProgress(p: number): Destination | null {
   return DESTINATIONS.find((d) => p >= d.range[0] && p < d.range[1]) ?? null;
 }
 
+const DESTINATIONS_BY_ID = new Map<string, Destination>(DESTINATIONS.map((d) => [d.id, d]));
+
+// `id: DestinationId` above stops DESTINATIONS from containing an unknown
+// id; this catches the one direction the type system can't — an id listed
+// in DESTINATION_IDS with no matching entry — at module load (i.e. during
+// `next build`'s static generation), not deep inside a component.
+for (const id of DESTINATION_IDS) {
+  if (!DESTINATIONS_BY_ID.has(id)) throw new Error(`lib/journey.ts: no DESTINATIONS entry for "${id}"`);
+}
+
+/** Lookup for untrusted strings (route params) — may miss. */
 export function getDestinationById(id: string): Destination | undefined {
-  return DESTINATIONS.find((d) => d.id === id);
+  return DESTINATIONS_BY_ID.get(id);
+}
+
+/** Lookup for a known `DestinationId` — always present (checked at module load above). */
+export function getDestination(id: DestinationId): Destination {
+  return DESTINATIONS_BY_ID.get(id) as Destination;
 }
 
 /**

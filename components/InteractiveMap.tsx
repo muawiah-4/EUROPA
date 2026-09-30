@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { motion, type MotionValue } from "framer-motion";
-import { DESTINATIONS, JOURNEY_MARKS, haversineKm } from "@/lib/journey";
+import { DESTINATIONS, getDestination, JOURNEY_MARKS, haversineKm } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, projectLatLon } from "@/lib/europeGeo";
 
 // Every city's real projected lat/lon (see lib/europeGeo.ts) — matches the
@@ -17,7 +17,7 @@ const POSITIONS: Record<string, { x: number; y: number }> = (() => {
   return map;
 })();
 
-const ROUTE = JOURNEY_ROUTE_ORDER.map((id) => DESTINATIONS.find((d) => d.id === id)!).filter(Boolean);
+const ROUTE = JOURNEY_ROUTE_ORDER.map(getDestination);
 
 // Scroll-linked appearance window. Originally an ~0.8%-of-scroll sliver
 // (under 9vh) between the last chapter and the outro — too narrow to

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getDestinationById } from "@/lib/journey";
+import { getDestination, type DestinationId } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
 /**
@@ -17,7 +17,7 @@ import AtmosphereParticles from "@/components/AtmosphereParticles";
  * AtmosphereParticles backing, no photography, no drawn landmark art.
  */
 const ICONS: {
-  destinationId: string;
+  destinationId: DestinationId;
   name: string;
   category: string;
   description: string;
@@ -104,8 +104,7 @@ export default function IconsOfEurope() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:auto-rows-[minmax(210px,auto)] md:grid-cols-4 md:gap-6">
       {ICONS.map((icon, i) => {
-        const d = getDestinationById(icon.destinationId);
-        if (!d) return null;
+        const d = getDestination(icon.destinationId);
         return (
           <Link
             key={icon.name}

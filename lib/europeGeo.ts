@@ -8,6 +8,8 @@
  * — so the flat map and the globe agree on what Europe looks like.
  */
 
+import type { DestinationId } from "@/lib/journey";
+
 // Europe's very rough lat/long bounding shape, sampled as a loose point
 // cloud rather than a traced coastline — enough to read as "a continent"
 // without importing real geo/GeoJSON data. Shared with GlobeHero's 3D
@@ -56,7 +58,7 @@ export function projectLatLon(lat: number, lon: number): { x: number; y: number 
 // pacing and mood, not physical geography. Iceland stays the closing
 // flight, same as the main journey's own framing of it as "the edge of
 // the map."
-export const JOURNEY_ROUTE_ORDER = [
+export const JOURNEY_ROUTE_ORDER: readonly DestinationId[] = [
   "london",
   "paris",
   "amsterdam",
@@ -67,12 +69,12 @@ export const JOURNEY_ROUTE_ORDER = [
   "santorini",
   "barcelona",
   "iceland",
-] as const;
+];
 
 // Recommended dwell, in days — an editorial judgment call loosely following
 // each destination's own `pace` field (slow/medium/brisk maps to roughly
 // 3/2/2 days), not a scraped average.
-export const STAY_DURATIONS: Record<(typeof JOURNEY_ROUTE_ORDER)[number], number> = {
+export const STAY_DURATIONS: Record<DestinationId, number> = {
   london: 2,
   paris: 3,
   amsterdam: 2,

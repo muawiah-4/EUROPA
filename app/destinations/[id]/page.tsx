@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { DESTINATIONS, getDestinationById, haversineKm } from "@/lib/journey";
+import { DESTINATIONS, getDestination, getDestinationById, haversineKm, type DestinationId } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, estimateTravelTime } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
@@ -24,7 +24,7 @@ import IcelandKineticWordmark from "@/components/IcelandKineticWordmark";
 // One kinetic wordmark per destination — each a genuinely different
 // mechanism (see the individual component files), never a 3D object or a
 // drawing of a landmark. Looked up by id rather than a long if/else chain.
-const KINETIC_WORDMARKS: Record<string, ComponentType<{ accent: string }>> = {
+const KINETIC_WORDMARKS: Record<DestinationId, ComponentType<{ accent: string }>> = {
   paris: ParisKineticWordmark,
   rome: RomeKineticWordmark,
   santorini: SantoriniKineticWordmark,
@@ -61,11 +61,11 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
   // This destination's real place on the Grand Tour route (lib/europeGeo.ts's
   // geographic travel order), not the site's narrative chapter order above —
   // replaces the old standalone map section with concrete route data instead.
-  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id as (typeof JOURNEY_ROUTE_ORDER)[number]);
-  const prevStop = routeIndex > 0 ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
+  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id);
+  const prevStop = routeIndex > 0 ? getDestination(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
   const nextStop =
     routeIndex >= 0 && routeIndex < JOURNEY_ROUTE_ORDER.length - 1
-      ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex + 1])
+      ? getDestination(JOURNEY_ROUTE_ORDER[routeIndex + 1])
       : null;
   const legFrom = (other: typeof destination) => {
     const km = Math.round(haversineKm(destination.coordinates, other.coordinates));

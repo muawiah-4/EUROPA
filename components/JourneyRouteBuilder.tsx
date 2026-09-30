@@ -3,13 +3,13 @@
 import Image from "next/image";
 import { useId, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { getDestinationById, haversineKm } from "@/lib/journey";
+import { getDestination, haversineKm, type DestinationId } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, STAY_DURATIONS, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
 // All ten stops, precomputed once — the builder always shows every city as
 // a clickable option; only *which of them are selected* changes.
-const ALL_STOPS = JOURNEY_ROUTE_ORDER.map((id) => getDestinationById(id)!);
+const ALL_STOPS = JOURNEY_ROUTE_ORDER.map(getDestination);
 
 const POSITIONS: Record<string, { x: number; y: number }> = (() => {
   const map: Record<string, { x: number; y: number }> = {};
@@ -25,10 +25,10 @@ export default function JourneyRouteBuilder() {
   // component used to reveal one fixed preset route, and starting blank
   // makes the new "you pick, it draws" mechanic unambiguous: nothing on
   // the map is "the" route until you choose it to be.
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [selected, setSelected] = useState<Set<DestinationId>>(() => new Set());
   const gradientIdBase = useId();
 
-  const toggle = (id: string) =>
+  const toggle = (id: DestinationId) =>
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -41,7 +41,7 @@ export default function JourneyRouteBuilder() {
   // JOURNEY_ROUTE_ORDER the rest of the site uses) — picking Rome before
   // London shouldn't zigzag the line backwards across the continent.
   const orderedStops = useMemo(
-    () => JOURNEY_ROUTE_ORDER.filter((id) => selected.has(id)).map((id) => getDestinationById(id)!),
+    () => JOURNEY_ROUTE_ORDER.filter((id) => selected.has(id)).map(getDestination),
     [selected]
   );
 
@@ -56,7 +56,7 @@ export default function JourneyRouteBuilder() {
   );
 
   const totalKm = legs.reduce((sum, l) => sum + l.km, 0);
-  const totalDays = orderedStops.reduce((sum, d) => sum + STAY_DURATIONS[d.id as (typeof JOURNEY_ROUTE_ORDER)[number]], 0);
+  const totalDays = orderedStops.reduce((sum, d) => sum + STAY_DURATIONS[d.id], 0);
   const totalTravelHours = legs.reduce((sum, l) => sum + l.travel.hours, 0);
 
   return (
@@ -336,7 +336,7 @@ export default function JourneyRouteBuilder() {
                 <div className="pl-[30px] md:w-[12%] md:shrink-0 md:pl-0">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-smoke">Stay</div>
                   <div className="mt-1 font-mono text-[12px] uppercase tracking-[0.16em] text-mist">
-                    {STAY_DURATIONS[d.id as (typeof JOURNEY_ROUTE_ORDER)[number]]} days
+                    {STAY_DURATIONS[d.id]} days
                   </div>
                 </div>
 

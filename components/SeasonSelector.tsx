@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { DESTINATIONS, getDestinationById, type AtmosphereKind, type Destination } from "@/lib/journey";
+import { DESTINATIONS, getDestination, type AtmosphereKind, type Destination, type DestinationId } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import DestinationPhotoBackdrop from "@/components/DestinationPhotoBackdrop";
 
@@ -18,7 +18,7 @@ type Season = {
   /** A representative photo + a season-specific tint — deliberately its
    * own color identity, not the pictured destination's own accent, so the
    * four seasons read as four distinct moods rather than four cities. */
-  photoId: string;
+  photoId: DestinationId;
   sky: [string, string];
   accent: string;
 };
@@ -86,6 +86,7 @@ export default function SeasonSelector() {
   const [active, setActive] = useState<SeasonId>("spring");
   const season = SEASONS.find((s) => s.id === active) ?? SEASONS[0];
   const picks = destinationsFor(season);
+  const seasonPhoto = getDestination(season.photoId).photoSrc;
 
   return (
     <div>
@@ -128,10 +129,10 @@ export default function SeasonSelector() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="relative flex min-h-[420px] flex-col justify-end overflow-hidden bg-panel px-8 py-14 md:px-16 md:py-20"
           >
-            {getDestinationById(season.photoId)?.photoSrc && (
+            {seasonPhoto && (
               <div aria-hidden className="absolute inset-0">
                 <DestinationPhotoBackdrop
-                  photos={[getDestinationById(season.photoId)!.photoSrc!]}
+                  photos={[seasonPhoto]}
                   sky={season.sky}
                   accent={season.accent}
                 />

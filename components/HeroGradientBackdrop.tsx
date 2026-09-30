@@ -4,11 +4,19 @@ import { useState } from "react";
 import { motion, useTransform, useMotionValueEvent, type MotionValue } from "framer-motion";
 import { GradientWave } from "@/components/GradientWave";
 
+// Hoisted so GradientWave sees stable props — inline literals here were
+// part of its effect deps and rebuilt the WebGL canvas on every render.
+const HERO_COLORS = ["#050506", "#1d160c", "#0a0806"];
+const HERO_NOISE_FREQUENCY: [number, number] = [0.0001, 0.00028];
+const HERO_DEFORM = { incline: 0.18, noiseAmp: 75, noiseFlow: 1.8, offsetTop: -0.5, offsetBottom: -0.5 };
+
 /**
  * Ambient color wash behind the globe hero, replacing the flat void
- * background for just the opening beat. Faded and unmounted at the same
+ * background for just the opening beat. Faded out and paused at the same
  * heroEnd boundary HeroTitle/GlobeHero already use, so it never keeps
- * animating, unseen, behind the rest of the journey.
+ * animating, unseen, behind the rest of the journey. Hidden rather than
+ * unmounted, so scrolling back up resumes the same canvas instead of
+ * creating a fresh WebGL context each time.
  */
 export default function HeroGradientBackdrop({
   progress,
@@ -18,16 +26,18 @@ export default function HeroGradientBackdrop({
   heroEnd: number;
 }) {
   const opacity = useTransform(progress, [0, heroEnd], [1, 0]);
-  const [mounted, setMounted] = useState(true);
+  const [active, setActive] = useState(() => progress.get() < heroEnd + 0.01);
 
   useMotionValueEvent(progress, "change", (v) => {
-    setMounted(v < heroEnd + 0.01);
+    setActive(v < heroEnd + 0.01);
   });
 
-  if (!mounted) return null;
-
   return (
-    <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
+    <motion.div
+      style={{ opacity, visibility: active ? "visible" : "hidden" }}
+      className="absolute inset-0"
+      aria-hidden
+    >
       {/*
         Reused from the original 5-stop palette (no new hues), trimmed to 3:
         void base + a single warm-ember layer + a near-void layer. Fewer
@@ -42,10 +52,11 @@ export default function HeroGradientBackdrop({
         same removal in DestinationGradientBackdrop.tsx.
       */}
       <GradientWave
-        colors={["#050506", "#1d160c", "#0a0806"]}
+        colors={HERO_COLORS}
+        isPlaying={active}
         noiseSpeed={0.0000035}
-        noiseFrequency={[0.0001, 0.00028]}
-        deform={{ incline: 0.18, noiseAmp: 75, noiseFlow: 1.8, offsetTop: -0.5, offsetBottom: -0.5 }}
+        noiseFrequency={HERO_NOISE_FREQUENCY}
+        deform={HERO_DEFORM}
       />
     </motion.div>
   );

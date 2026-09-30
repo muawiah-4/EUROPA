@@ -111,7 +111,7 @@ export default function IconsOfEurope() {
             href={`/destinations/${d.id}`}
             data-cursor="link"
             className={`group relative flex flex-col justify-end overflow-hidden bg-panel p-6 outline-none ${icon.span ?? ""}`}
-            style={{ border: "1px solid rgba(242,239,233,0.08)" }}
+            style={{ border: "1px solid rgb(var(--bone) / 0.08)" }}
           >
             {/* Base sky — fallback color, sits behind the photo */}
             <div
@@ -148,12 +148,13 @@ export default function IconsOfEurope() {
               <AtmosphereParticles kind={d.atmosphere} />
             </div>
 
-            {/* Accent wash on top of the graded photo, for the same
-                per-city color identity the grid had before photos */}
+            {/* Neutral top-light wash on the graded photo — was each city's
+                own accent, which put all ten accents on screen at once and
+                broke the site's single-accent (mint) rule. */}
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0"
-              style={{ background: `radial-gradient(ellipse at 50% 20%, ${d.accent}40, transparent 70%)` }}
+              style={{ background: "radial-gradient(ellipse at 50% 20%, rgb(var(--bone) / 0.08), transparent 70%)" }}
             />
             <div
               aria-hidden
@@ -162,7 +163,7 @@ export default function IconsOfEurope() {
             />
 
             <div className="relative flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em]">
-              <span style={{ color: d.accent }}>{String(i + 1).padStart(2, "0")}</span>
+              <span className="text-mist transition-colors duration-300 group-hover:text-mint">{String(i + 1).padStart(2, "0")}</span>
               <span className="text-mist/80">{icon.category}</span>
             </div>
             <h3 className="relative mt-2 font-display text-xl font-light leading-tight text-bone md:text-2xl">
@@ -172,15 +173,14 @@ export default function IconsOfEurope() {
 
             <div
               className="relative mt-4 flex items-center justify-between border-t pt-3"
-              style={{ borderColor: "rgba(242,239,233,0.08)" }}
+              style={{ borderColor: "rgb(var(--bone) / 0.08)" }}
             >
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-smoke transition-colors duration-300 group-hover:text-bone">
                 {d.city}, {d.country}
               </span>
               <span
                 aria-hidden
-                className="translate-x-0 font-mono text-sm transition-transform duration-300 ease-out group-hover:translate-x-1"
-                style={{ color: d.accent }}
+                className="translate-x-0 font-mono text-sm text-mist transition-[transform,color] duration-300 ease-out group-hover:translate-x-1 group-hover:text-mint"
               >
                 &rarr;
               </span>
@@ -189,7 +189,7 @@ export default function IconsOfEurope() {
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              style={{ border: `1px solid ${d.accent}55` }}
+              style={{ border: "1px solid rgb(var(--mint) / 0.35)" }}
             />
           </Link>
         );

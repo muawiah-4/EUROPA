@@ -165,7 +165,7 @@ export default function ParisExperience() {
                 >
                   <span
                     className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                    style={{ color: isActive ? "#e8c07a" : "rgba(184,182,174,0.6)" }}
+                    style={{ color: isActive ? "#e8c07a" : "rgb(var(--mist) / 0.7)" }}
                   >
                     {String(a.index).padStart(2, "0")} — {a.label}
                   </span>
@@ -186,11 +186,11 @@ export default function ParisExperience() {
                     }
                     style={{
                       background: isActive ? "#e8c07a" : "transparent",
-                      border: isActive ? "none" : "1.5px solid rgba(184,182,174,0.45)",
+                      border: isActive ? "none" : "1.5px solid rgb(var(--mist) / 0.45)",
                     }}
                   />
                 </button>
-                {!isLast && <span className="h-9 w-px" style={{ background: "rgba(184,182,174,0.25)" }} />}
+                {!isLast && <span className="h-9 w-px" style={{ background: "rgb(var(--mist) / 0.25)" }} />}
               </div>
             );
           })}

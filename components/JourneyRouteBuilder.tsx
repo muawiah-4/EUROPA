@@ -11,6 +11,17 @@ import AtmosphereParticles from "@/components/AtmosphereParticles";
 // a clickable option; only *which of them are selected* changes.
 const ALL_STOPS = JOURNEY_ROUTE_ORDER.map(getDestination);
 
+// One-accent rule: all ten cities are on this map at once, so unselected
+// stops rest neutral and the chosen route (dots, legs, chips) is mint — no
+// per-destination accents here. Literal channels of --mist / --mint (see
+// app/globals.css): SVG attributes and Framer Motion colour interpolation
+// can't resolve var(). Resting labels at mist/70 ≈ 4.8:1+ on the panel.
+const MARKER_REST = "rgb(195, 199, 206)";
+const MARKER_GLOW = "rgba(195, 199, 206, 0.45)";
+const MARKER_ACTIVE = "rgb(59, 186, 156)";
+const LABEL_REST = "rgba(195, 199, 206, 0.7)";
+const ROUTE_COLOR = "rgb(59, 186, 156)";
+
 const POSITIONS: Record<string, { x: number; y: number }> = (() => {
   const map: Record<string, { x: number; y: number }> = {};
   for (const d of ALL_STOPS) {
@@ -64,7 +75,7 @@ export default function JourneyRouteBuilder() {
       {/* Map card */}
       <div
         className="relative overflow-hidden bg-panel px-6 py-10 md:px-12 md:py-14"
-        style={{ border: "1px solid rgba(242,239,233,0.08)" }}
+        style={{ border: "1px solid rgb(var(--bone) / 0.08)" }}
       >
         {/* Grayscale wash, matching the user-supplied monochrome background
             palette — was a multi-destination-accent blend (this card picks
@@ -83,7 +94,7 @@ export default function JourneyRouteBuilder() {
 
         <div className="relative flex flex-col gap-10 md:flex-row md:items-start md:gap-14">
           <div className="md:w-[38%]">
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Build your own</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-mist/80">Build your own</div>
             <h3 className="mt-4 font-display text-3xl font-light leading-[1.05] tracking-[-0.02em] text-bone md:text-4xl">
               Pick your places.
               <br />
@@ -109,9 +120,9 @@ export default function JourneyRouteBuilder() {
                     data-cursor="link"
                     className="rounded-full border px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
                     style={{
-                      borderColor: isSelected ? d.accent : "rgba(242,239,233,0.14)",
-                      color: isSelected ? d.accent : "rgb(var(--mist))",
-                      background: isSelected ? `${d.accent}18` : "transparent",
+                      borderColor: isSelected ? "rgb(var(--mint))" : "rgb(var(--bone) / 0.14)",
+                      color: isSelected ? "rgb(var(--mint))" : "rgb(var(--mist))",
+                      background: isSelected ? "rgb(var(--mint) / 0.09)" : "transparent",
                     }}
                   >
                     {d.city}
@@ -122,25 +133,25 @@ export default function JourneyRouteBuilder() {
 
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-smoke">Distance</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist/80">Distance</div>
                 <div className="mt-1 font-mono text-[13px] uppercase tracking-[0.14em] text-mist">
                   {orderedStops.length === 0 ? "—" : `${totalKm.toLocaleString()} km`}
                 </div>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-smoke">On the ground</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist/80">On the ground</div>
                 <div className="mt-1 font-mono text-[13px] uppercase tracking-[0.14em] text-mist">
                   {orderedStops.length === 0 ? "—" : `${totalDays} days`}
                 </div>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-smoke">In transit</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist/80">In transit</div>
                 <div className="mt-1 font-mono text-[13px] uppercase tracking-[0.14em] text-mist">
                   {orderedStops.length === 0 ? "—" : `~${Math.round(totalTravelHours)} hrs`}
                 </div>
               </div>
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-smoke">Stops</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist/80">Stops</div>
                 <div className="mt-1 font-mono text-[13px] uppercase tracking-[0.14em] text-mist">
                   {orderedStops.length === 0 ? "—" : `${orderedStops.length} ${orderedStops.length === 1 ? "city" : "cities"}`}
                 </div>
@@ -151,7 +162,7 @@ export default function JourneyRouteBuilder() {
               <button
                 onClick={() => setSelected(new Set())}
                 data-cursor="link"
-                className="mt-9 font-mono text-[11px] uppercase tracking-[0.24em] text-smoke transition-colors hover:text-bone"
+                className="mt-9 font-mono text-[11px] uppercase tracking-[0.24em] text-mist/80 transition-colors hover:text-bone"
               >
                 Clear trip
               </button>
@@ -186,26 +197,8 @@ export default function JourneyRouteBuilder() {
                 <filter id={`${gradientIdBase}-glow`} x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="0.5" />
                 </filter>
-                {legs.map((l, i) => {
-                  const a = POSITIONS[l.from.id];
-                  const b = POSITIONS[l.to.id];
-                  return (
-                    <linearGradient
-                      key={i}
-                      id={`${gradientIdBase}-leg-${i}`}
-                      gradientUnits="userSpaceOnUse"
-                      x1={(a.x / 100) * MAP_WIDTH}
-                      y1={(a.y / 100) * MAP_HEIGHT}
-                      x2={(b.x / 100) * MAP_WIDTH}
-                      y2={(b.y / 100) * MAP_HEIGHT}
-                    >
-                      <stop offset="0%" stopColor={l.from.accent} />
-                      <stop offset="100%" stopColor={l.to.accent} />
-                    </linearGradient>
-                  );
-                })}
               </defs>
-              {legs.map((l, i) => {
+              {legs.map((l) => {
                 const a = { x: (POSITIONS[l.from.id].x / 100) * MAP_WIDTH, y: (POSITIONS[l.from.id].y / 100) * MAP_HEIGHT };
                 const b = { x: (POSITIONS[l.to.id].x / 100) * MAP_WIDTH, y: (POSITIONS[l.to.id].y / 100) * MAP_HEIGHT };
                 const dx = b.x - a.x;
@@ -221,7 +214,7 @@ export default function JourneyRouteBuilder() {
                     <motion.path
                       d={path}
                       fill="none"
-                      stroke={`url(#${gradientIdBase}-leg-${i})`}
+                      stroke={ROUTE_COLOR}
                       strokeWidth={0.5}
                       filter={`url(#${gradientIdBase}-glow)`}
                       initial={{ pathLength: 0, opacity: 0 }}
@@ -231,7 +224,7 @@ export default function JourneyRouteBuilder() {
                     <motion.path
                       d={path}
                       fill="none"
-                      stroke={`url(#${gradientIdBase}-leg-${i})`}
+                      stroke={ROUTE_COLOR}
                       strokeWidth={0.08}
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
@@ -259,23 +252,25 @@ export default function JourneyRouteBuilder() {
                 >
                   <motion.span
                     className="block rounded-full"
+                    initial={{ backgroundColor: MARKER_REST }}
                     animate={{
                       width: isSelected ? 11 : 6,
                       height: isSelected ? 11 : 6,
+                      backgroundColor: isSelected ? MARKER_ACTIVE : MARKER_REST,
                       boxShadow: isSelected
-                        ? `0 0 14px ${d.accent}`
-                        : [`0 0 3px ${d.accent}`, `0 0 8px ${d.accent}`, `0 0 3px ${d.accent}`],
+                        ? `0 0 14px ${MARKER_ACTIVE}`
+                        : [`0 0 3px ${MARKER_GLOW}`, `0 0 8px ${MARKER_GLOW}`, `0 0 3px ${MARKER_GLOW}`],
                     }}
                     transition={
                       isSelected
                         ? { duration: 0.35, ease: [0.16, 1, 0.3, 1] }
-                        : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 3.2, repeat: Infinity, ease: "easeInOut", backgroundColor: { duration: 0.3 } }
                     }
-                    style={{ background: d.accent, opacity: isSelected ? 1 : 0.55 }}
+                    style={{ opacity: isSelected ? 1 : 0.55 }}
                   />
                   <span
                     className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.16em] transition-opacity"
-                    style={{ color: d.accent, opacity: isSelected ? 0.9 : 0.4 }}
+                    style={{ color: isSelected ? MARKER_ACTIVE : LABEL_REST }}
                   >
                     {d.city}
                   </span>
@@ -310,7 +305,7 @@ export default function JourneyRouteBuilder() {
                 {/* 1. City identity */}
                 <div className="flex items-start gap-4 md:w-[24%] md:shrink-0">
                   {d.photoSrc && (
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden" style={{ border: "1px solid rgba(242,239,233,0.1)" }}>
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden" style={{ border: "1px solid rgb(var(--bone) / 0.1)" }}>
                       <Image
                         src={d.photoSrc}
                         alt=""
@@ -322,7 +317,7 @@ export default function JourneyRouteBuilder() {
                     </div>
                   )}
                   <div className="flex items-start gap-2.5">
-                    <span className="mt-[2px] shrink-0 font-mono text-[12px] tracking-[0.18em]" style={{ color: d.accent }}>
+                    <span className="mt-[2px] shrink-0 font-mono text-[12px] tracking-[0.18em] text-mint">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div>
@@ -357,7 +352,7 @@ export default function JourneyRouteBuilder() {
                       <div className="mt-1 font-mono text-[12px] uppercase tracking-[0.16em] text-mist">
                         {leg.km.toLocaleString()} km
                       </div>
-                      <div className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.14em]" style={{ color: d.accent }}>
+                      <div className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.14em] text-mist">
                         ~{leg.travel.hours.toFixed(1)} hrs &middot; {leg.travel.mode}
                       </div>
                     </>

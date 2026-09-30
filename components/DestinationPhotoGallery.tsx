@@ -37,7 +37,7 @@ export default function DestinationPhotoGallery({ photos, accent }: { photos: Ga
           className={`group relative block overflow-hidden bg-panel aspect-[4/3] sm:aspect-auto sm:h-full ${
             i === 0 ? "sm:col-span-2 sm:row-span-2" : "sm:col-span-1 sm:row-span-1"
           }`}
-          style={{ border: "1px solid rgba(242,239,233,0.08)" }}
+          style={{ border: "1px solid rgb(var(--bone) / 0.08)" }}
         >
           <Image
             src={p.src}

@@ -10,7 +10,7 @@ export default function DestinationCard({ destination }: { destination: Destinat
     <Link
       href={`/destinations/${destination.id}`}
       className="group relative block overflow-hidden bg-panel outline-none transition-colors duration-500 focus-visible:outline-none"
-      style={{ border: "1px solid rgba(242,239,233,0.08)" }}
+      style={{ border: "1px solid rgb(var(--bone) / 0.08)" }}
     >
       {/* Art */}
       <div
@@ -90,7 +90,7 @@ export default function DestinationCard({ destination }: { destination: Destinat
 
         <div
           className="relative mt-6 flex items-center justify-between border-t pt-4"
-          style={{ borderColor: "rgba(242,239,233,0.08)" }}
+          style={{ borderColor: "rgb(var(--bone) / 0.08)" }}
         >
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke transition-colors duration-300 group-hover:text-bone">
             View destination

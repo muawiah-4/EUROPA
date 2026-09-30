@@ -5,8 +5,8 @@
  * using it as this site's own logo would misleadingly suggest institutional
  * affiliation, directly contradicting the footer's own "not affiliated with
  * any destination shown" disclaimer. This keeps the *motif* — unity, a
- * circle, stars — in the site's own established gold accent instead of the
- * flag's specific blue/gold, and with 8 points instead of 12 so it reads as
+ * circle, stars — in the site's single mint accent instead of the
+ * flag's specific blue/gold (app/icon.svg mirrors this mark), and with 8 points instead of 12 so it reads as
  * its own mark rather than a redrawn copy.
  */
 export default function EuropaMark({ size = 18 }: { size?: number }) {

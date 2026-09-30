@@ -38,7 +38,7 @@ export default function JourneyHeroCollage() {
               left: layout.left,
               transform: `rotate(${layout.rotate}deg)`,
               zIndex: layout.z,
-              border: "1px solid rgba(242,239,233,0.1)",
+              border: "1px solid rgb(var(--bone) / 0.1)",
             }}
           >
             <Image

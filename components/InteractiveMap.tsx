@@ -19,6 +19,17 @@ const POSITIONS: Record<string, { x: number; y: number }> = (() => {
 
 const ROUTE = JOURNEY_ROUTE_ORDER.map(getDestination);
 
+// One-accent rule (same as DestinationsMap): every city is on screen at
+// once, so markers/legs rest neutral and only the hovered one turns mint.
+// Resting labels at mist/65 ≈ 5.3:1 on void (was accent @55%, ~2–4:1).
+// Literal channels of --mist / --mint (app/globals.css): SVG attributes and
+// Framer Motion colour interpolation can't resolve var().
+const MARKER_REST = "rgb(195, 199, 206)";
+const MARKER_GLOW = "rgba(195, 199, 206, 0.45)";
+const MARKER_ACTIVE = "rgb(59, 186, 156)";
+const LABEL_REST = "rgba(195, 199, 206, 0.65)";
+const ROUTE_REST = "rgba(195, 199, 206, 0.7)";
+
 // Scroll-linked appearance window. Originally an ~0.8%-of-scroll sliver
 // (under 9vh) between the last chapter and the outro — too narrow to
 // reliably land on with a wheel flick or a swipe. Widened to a ~2%-of-
@@ -109,17 +120,6 @@ export default function InteractiveMap({
                 <filter id={`${gradientIdBase}-glow`} x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="0.5" />
                 </filter>
-                {ROUTE.slice(0, -1).map((d, i) => {
-                  const next = ROUTE[i + 1];
-                  const a = projectLatLon(d.coordinates.lat, d.coordinates.lon);
-                  const b = projectLatLon(next.coordinates.lat, next.coordinates.lon);
-                  return (
-                    <linearGradient key={i} id={`${gradientIdBase}-leg-${i}`} gradientUnits="userSpaceOnUse" x1={a.x} y1={a.y} x2={b.x} y2={b.y}>
-                      <stop offset="0%" stopColor={d.accent} />
-                      <stop offset="100%" stopColor={next.accent} />
-                    </linearGradient>
-                  );
-                })}
               </defs>
               {ROUTE.slice(0, -1).map((d, i) => {
                 const next = ROUTE[i + 1];
@@ -135,8 +135,8 @@ export default function InteractiveMap({
                 const path = `M ${a.x} ${a.y} Q ${mid.x} ${mid.y} ${b.x} ${b.y}`;
                 return (
                   <g key={d.id}>
-                    <path d={path} fill="none" stroke={`url(#${gradientIdBase}-leg-${i})`} strokeWidth={0.5} opacity={0.35} filter={`url(#${gradientIdBase}-glow)`} />
-                    <path d={path} fill="none" stroke={`url(#${gradientIdBase}-leg-${i})`} strokeWidth={0.08} strokeLinecap="round" opacity={0.7} />
+                    <path d={path} fill="none" stroke={ROUTE_REST} strokeWidth={0.5} opacity={0.35} filter={`url(#${gradientIdBase}-glow)`} />
+                    <path d={path} fill="none" stroke={ROUTE_REST} strokeWidth={0.08} strokeLinecap="round" opacity={0.7} />
                   </g>
                 );
               })}
@@ -161,24 +161,24 @@ export default function InteractiveMap({
                 >
                   <motion.span
                     className="block rounded-full"
-                    initial={{ width: 7, height: 7 }}
+                    initial={{ width: 7, height: 7, backgroundColor: MARKER_REST }}
                     animate={{
                       width: isHovered ? 12 : 7,
                       height: isHovered ? 12 : 7,
+                      backgroundColor: isHovered ? MARKER_ACTIVE : MARKER_REST,
                       boxShadow: isHovered
-                        ? `0 0 20px ${d.accent}`
-                        : [`0 0 6px ${d.accent}`, `0 0 13px ${d.accent}`, `0 0 6px ${d.accent}`],
+                        ? `0 0 20px ${MARKER_ACTIVE}`
+                        : [`0 0 6px ${MARKER_GLOW}`, `0 0 13px ${MARKER_GLOW}`, `0 0 6px ${MARKER_GLOW}`],
                     }}
                     transition={
                       isHovered
                         ? { duration: 0.25 }
-                        : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 3.4, repeat: Infinity, ease: "easeInOut", backgroundColor: { duration: 0.3 } }
                     }
-                    style={{ background: d.accent }}
                   />
                   <span
-                    className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.16em] transition-opacity duration-300"
-                    style={{ color: d.accent, opacity: isHovered ? 1 : 0.55 }}
+                    className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-300"
+                    style={{ color: isHovered ? MARKER_ACTIVE : LABEL_REST }}
                   >
                     {d.city}
                   </span>

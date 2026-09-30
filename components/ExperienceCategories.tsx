@@ -81,7 +81,7 @@ export default function ExperienceCategories() {
             href={`/destinations/${primary.id}`}
             data-cursor="link"
             className={`group relative block min-h-[280px] overflow-hidden bg-panel outline-none transition-colors duration-500 focus-visible:outline-none lg:min-h-0 ${c.span}`}
-            style={{ border: "1px solid rgba(242,239,233,0.08)" }}
+            style={{ border: "1px solid rgb(var(--bone) / 0.08)" }}
           >
             {/* Base sky — fallback color, sits behind the photo in case a
                 destination is ever added without one */}
@@ -154,7 +154,7 @@ export default function ExperienceCategories() {
 
               <div
                 className="mt-6 flex items-center justify-between border-t pt-4"
-                style={{ borderColor: "rgba(242,239,233,0.08)" }}
+                style={{ borderColor: "rgb(var(--bone) / 0.08)" }}
               >
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-smoke transition-colors duration-300 group-hover:text-bone">
                   {linkedCities}

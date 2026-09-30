@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "What this site is, how it was built, and where it draws the line between original art and real photography.",
 };
 
-const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string; accent: string } }[] = [
+const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string } }[] = [
   {
     label: "TYPOGRAPHY",
     value: "Each city's own name is its landmark by default — a restrained, place-specific kinetic motion instead of a drawn or modeled object.",
@@ -43,7 +43,7 @@ const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string; accent
   {
     label: "PARIS, IN PHOTOGRAPHS",
     value: "One deliberate exception: Paris carries real photography, graded toward the site's own palette — a hybrid trial for how far this could go.",
-    photo: { src: "/destinations/paris.jpg", accent: "#e8c07a" },
+    photo: { src: "/destinations/paris.jpg" },
   },
 ];
 
@@ -92,7 +92,7 @@ export default function AboutPage() {
                   width: layout.w,
                   aspectRatio: "4 / 5",
                   transform: `rotate(${layout.rotate}deg)`,
-                  border: "1px solid rgba(242,239,233,0.14)",
+                  border: "1px solid rgb(var(--bone) / 0.14)",
                 }}
               >
                 <Image
@@ -181,7 +181,7 @@ export default function AboutPage() {
                 {item.photo && (
                   <div
                     className="relative mb-4 h-14 w-14 overflow-hidden"
-                    style={{ border: `1px solid ${item.photo.accent}66` }}
+                    style={{ border: "1px solid rgb(var(--bone) / 0.14)" }}
                   >
                     <Image src={item.photo.src} alt="" fill sizes="56px" className="object-cover" style={{ filter: ABOUT_PHOTO_FILTER }} />
                   </div>
@@ -242,10 +242,10 @@ export default function AboutPage() {
                   style={{ filter: ABOUT_PHOTO_FILTER }}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(0deg, rgb(var(--elevated)), transparent)" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "#e8c07a" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "rgb(var(--mint))" }} />
               </div>
               <div className="p-8 md:p-10">
-                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Option 01</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mist/80">Option 01</div>
                 <div className="mt-4 font-display text-2xl font-light tracking-[-0.02em] text-bone">
                   The full journey
                 </div>
@@ -274,10 +274,10 @@ export default function AboutPage() {
                   style={{ filter: ABOUT_PHOTO_FILTER }}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(0deg, rgb(var(--elevated)), transparent)" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "#5fb8d6" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "rgb(var(--mint))" }} />
               </div>
               <div className="p-8 md:p-10">
-                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Option 02</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mist/80">Option 02</div>
                 <div className="mt-4 font-display text-2xl font-light tracking-[-0.02em] text-bone">
                   Browse by destination
                 </div>

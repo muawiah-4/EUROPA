@@ -27,7 +27,7 @@ export default function PragueKineticWordmark({ accent }: { accent: string }) {
     <div className="relative">
       <style>{`
         @keyframes pragueTick {
-          0%, 4%, 100% { transform: translateY(0) scale(1); color: #f2efe9; }
+          0%, 4%, 100% { transform: translateY(0) scale(1); color: rgb(var(--bone)); }
           2% { transform: translateY(-5%) scale(1.05); color: ${accent}; }
         }
         .prague-letter {
@@ -70,7 +70,7 @@ export default function PragueKineticWordmark({ accent }: { accent: string }) {
         ))}
       </h1>
 
-      <div className="prague-wordmark-rule mt-6 h-px" style={{ backgroundColor: "rgba(242,239,233,0.25)" }}>
+      <div className="prague-wordmark-rule mt-6 h-px" style={{ backgroundColor: "rgb(var(--bone) / 0.25)" }}>
         <span aria-hidden className="prague-rule-dot" />
       </div>
     </div>

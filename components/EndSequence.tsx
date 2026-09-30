@@ -64,11 +64,11 @@ export default function EndSequence({
               >
                 <span
                   className="absolute left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[3px]"
-                  style={{ backgroundColor: d.accent, opacity: 0.35 }}
+                  style={{ backgroundColor: "rgb(var(--mint))", opacity: 0.35 }}
                 />
                 <span
                   className="absolute left-0 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{ backgroundColor: d.accent, opacity: 0.85 }}
+                  style={{ backgroundColor: "rgb(var(--mint))", opacity: 0.85 }}
                 />
               </span>
             );

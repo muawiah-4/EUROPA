@@ -34,7 +34,7 @@ export default function GhostHeading({
         style={{
           fontSize: "clamp(4.5rem, 15vw, 13rem)",
           color: "transparent",
-          WebkitTextStroke: "1px rgba(242,239,233,0.08)",
+          WebkitTextStroke: "1px rgb(var(--bone) / 0.08)",
           whiteSpace: "nowrap",
         }}
       >

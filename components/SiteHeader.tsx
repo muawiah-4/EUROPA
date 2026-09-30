@@ -34,8 +34,14 @@ export default function SiteHeader() {
   const [scrolled, setScrolled] = useState(!isHome);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Recomputed whenever the route changes: the header persists across
+  // client-side navigations, so inner pages must reset it to solid here
+  // rather than relying on the initial useState value.
   useEffect(() => {
-    if (!isHome) return;
+    if (!isHome) {
+      setScrolled(true);
+      return;
+    }
     const onScroll = () => setScrolled(window.scrollY > 80);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });

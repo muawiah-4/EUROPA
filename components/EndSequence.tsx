@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import { DESTINATIONS } from "@/lib/journey";
@@ -15,9 +16,25 @@ export default function EndSequence({
   const start = 0.97;
   const opacity = useTransform(progress, [start, start + 0.02], [0, 1]);
   const scale = useTransform(progress, [start, 1], [1.08, 1]);
+  const [p, setP] = useState(() => progress.get());
+
+  useEffect(() => {
+    setP(progress.get());
+    const unsub = progress.on("change", setP);
+    return () => unsub();
+  }, [progress]);
+
+  // Same gating as InteractiveMap: while faded out (the whole journey until
+  // ~97%), this full-screen layer must not swallow clicks meant for the map
+  // beneath it, nor expose its buttons to Tab / screen readers.
+  const interactive = p > start + 0.001;
 
   return (
-    <motion.div style={{ opacity }} className="absolute inset-0 z-30 flex items-center justify-center bg-void">
+    <motion.div
+      style={{ opacity, pointerEvents: interactive ? "auto" : "none" }}
+      aria-hidden={!interactive}
+      className="absolute inset-0 z-30 flex items-center justify-center bg-void"
+    >
       <motion.div style={{ scale }} className="relative flex flex-col items-center px-6 text-center">
         {/*
           Constellation of every visited destination. Previously positioned
@@ -74,6 +91,7 @@ export default function EndSequence({
           <MagneticButton>
             <button
               onClick={onRestart}
+              tabIndex={interactive ? 0 : -1}
               data-cursor="link"
               className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
             >
@@ -83,6 +101,7 @@ export default function EndSequence({
           <MagneticButton>
             <Link
               href="/destinations"
+              tabIndex={interactive ? 0 : -1}
               data-cursor="link"
               className="rounded-full bg-bone px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-void transition-opacity hover:opacity-80"
             >

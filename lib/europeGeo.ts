@@ -112,3 +112,26 @@ export function estimateTravelTime(km: number): TravelEstimate {
     ? { hours: trainHours, mode: "train" }
     : { hours: flightHours, mode: "flight" };
 }
+
+/**
+ * A destination's neighbours along JOURNEY_ROUTE_ORDER, for the detail
+ * page's cross-links. `next` is the "Next stop" on the Grand Tour leg card
+ * and is null at the final stop ("Journey's end"); `nextWrapped` is the foot
+ * of page "Next destination" link, which wraps from the last stop back to
+ * the first. For every stop but the last the two are the same id.
+ */
+export function routeNeighbours(id: DestinationId): {
+  routeIndex: number;
+  prev: DestinationId | null;
+  next: DestinationId | null;
+  nextWrapped: DestinationId;
+} {
+  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(id);
+  const last = JOURNEY_ROUTE_ORDER.length - 1;
+  return {
+    routeIndex,
+    prev: routeIndex > 0 ? JOURNEY_ROUTE_ORDER[routeIndex - 1] : null,
+    next: routeIndex >= 0 && routeIndex < last ? JOURNEY_ROUTE_ORDER[routeIndex + 1] : null,
+    nextWrapped: JOURNEY_ROUTE_ORDER[(routeIndex + 1) % JOURNEY_ROUTE_ORDER.length],
+  };
+}

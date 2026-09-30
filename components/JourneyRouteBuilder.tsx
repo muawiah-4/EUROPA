@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { DESTINATION_IDS, getDestination, haversineKm, type DestinationId } from "@/lib/journey";
+import { getDestination, haversineKm, type DestinationId } from "@/lib/journey";
+import { STOPS_PARAM, parseStops, stopsQuery, toRouteOrder } from "@/lib/routeStops";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, STAY_DURATIONS, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
@@ -33,29 +34,7 @@ const POSITIONS: Record<string, { x: number; y: number }> = (() => {
 })();
 
 // ---------- Shareable route URL: /journeys?stops=london,paris,rome ----------
-// The query is untrusted input: anything that isn't a known DestinationId is
-// dropped, duplicates collapse, and the list is capped at the number of
-// destinations the builder can show (every stop at most once).
-const VALID_STOPS = new Set<string>(DESTINATION_IDS);
-const MAX_STOPS = DESTINATION_IDS.length;
-const STOPS_PARAM = "stops";
-
-function parseStops(raw: string | null): DestinationId[] {
-  if (!raw) return [];
-  const out: DestinationId[] = [];
-  for (const part of raw.split(",")) {
-    const id = part.trim().toLowerCase();
-    if (VALID_STOPS.has(id) && !out.includes(id as DestinationId)) out.push(id as DestinationId);
-    if (out.length >= MAX_STOPS) break;
-  }
-  return out;
-}
-
-// Ids are plain lowercase ASCII, so the comma list is written unencoded —
-// URLSearchParams would turn every comma into %2C and make the link ugly.
-function stopsQuery(ids: readonly DestinationId[]) {
-  return ids.length > 0 ? `?${STOPS_PARAM}=${ids.join(",")}` : "";
-}
+// Parsing/serializing lives in lib/routeStops.ts (unit tested).
 
 /**
  * URL-synced builder. Reads the initial route from `?stops=` and keeps the
@@ -123,7 +102,7 @@ function RouteBuilder({
   // JOURNEY_ROUTE_ORDER the rest of the site uses) — picking Rome before
   // London shouldn't zigzag the line backwards across the continent.
   const orderedStops = useMemo(
-    () => JOURNEY_ROUTE_ORDER.filter((id) => selected.has(id)).map(getDestination),
+    () => toRouteOrder(selected).map(getDestination),
     [selected]
   );
 

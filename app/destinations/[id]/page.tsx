@@ -12,7 +12,7 @@ import {
 } from "@/lib/journey";
 import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, pageMetadata } from "@/lib/site";
 import JsonLd from "@/components/JsonLd";
-import { JOURNEY_ROUTE_ORDER, estimateTravelTime } from "@/lib/europeGeo";
+import { JOURNEY_ROUTE_ORDER, estimateTravelTime, routeNeighbours } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
@@ -92,13 +92,11 @@ export default async function DestinationPage({ params }: { params: Promise<{ id
   // concrete route data instead. The "Next destination" cross-link at the
   // foot of the page follows the same order (wrapping from the last stop
   // back to the first), so the page's two "next" links never disagree.
-  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id);
-  const next = getDestination(JOURNEY_ROUTE_ORDER[(routeIndex + 1) % JOURNEY_ROUTE_ORDER.length]);
-  const prevStop = routeIndex > 0 ? getDestination(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
-  const nextStop =
-    routeIndex >= 0 && routeIndex < JOURNEY_ROUTE_ORDER.length - 1
-      ? getDestination(JOURNEY_ROUTE_ORDER[routeIndex + 1])
-      : null;
+  const route = routeNeighbours(destination.id);
+  const routeIndex = route.routeIndex;
+  const next = getDestination(route.nextWrapped);
+  const prevStop = route.prev ? getDestination(route.prev) : null;
+  const nextStop = route.next ? getDestination(route.next) : null;
   const legFrom = (other: typeof destination) => {
     const km = Math.round(haversineKm(destination.coordinates, other.coordinates));
     const { hours, mode } = estimateTravelTime(km);

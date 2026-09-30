@@ -106,12 +106,12 @@ export default function InteractiveMap({
         <div className="w-full max-w-3xl px-6">
           <div className="mb-10 text-center">
             <div className="font-mono text-[11px] uppercase tracking-[0.32em] text-smoke">The Map</div>
-            <h3
+            <h2
               className="mt-3 font-display font-light tracking-[-0.02em] text-bone"
               style={{ fontSize: "clamp(1.6rem, 4vw, 2.6rem)" }}
             >
               Every place, at its real coordinates.
-            </h3>
+            </h2>
           </div>
 
           <div className="relative mx-auto w-full max-w-xl" style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}>

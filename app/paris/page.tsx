@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 export default function ParisPage() {
   return (
     <main className="bg-void">
+      {/* The visible titles are timed, client-only act cards (h2) inside the
+          scroll experience, so the page's one <h1> is rendered here on the
+          server for screen readers and crawlers. */}
+      <h1 className="sr-only">Paris in Motion</h1>
       <ParisExperience />
       <SiteFooter />
     </main>

@@ -148,7 +148,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           />
         </div>
         <div className="mx-auto max-w-3xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</div>
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</h2>
           <p className="mt-6 text-balance font-display text-[22px] font-light leading-[1.5] text-bone md:text-[28px]">
             {destination.overview}
           </p>
@@ -165,13 +165,13 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-14 px-6 py-20 md:grid-cols-2 md:gap-16 md:px-10 md:py-28">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">History</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">History</h2>
             <p className="mt-5 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[16px]">
               {destination.history}
             </p>
           </div>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Culture</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Culture</h2>
             <p className="mt-5 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[16px]">
               {destination.culture}
             </p>
@@ -183,7 +183,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {destination.galleryPhotos && destination.galleryPhotos.length > 0 && (
         <section className="border-t border-white/[0.06] bg-panel px-6 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-5xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">In frame</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">In frame</h2>
             <div className="mt-8">
               <DestinationPhotoGallery photos={destination.galleryPhotos} accent={destination.accent} />
             </div>
@@ -195,9 +195,9 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {(prevStop || nextStop) && (
         <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-5xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">
               On the Grand Tour — stop {String(routeIndex + 1).padStart(2, "0")} of {JOURNEY_ROUTE_ORDER.length}
-            </div>
+            </h2>
             <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
               {prevStop && (
                 <Link
@@ -260,11 +260,11 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
         </div>
         <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-20 md:flex-row md:justify-between md:px-10 md:py-28">
           <div className="max-w-md">
-            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Travel tip</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Travel tip</h2>
             <p className="mt-3 text-[15px] font-light leading-relaxed text-mist md:text-[16px]">{destination.travelTip}</p>
           </div>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Best season</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Best season</h2>
             <div className="mt-3 font-mono text-[13px] uppercase tracking-[0.18em] text-mist">{destination.bestSeason}</div>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {/* ---------- Cross-navigation ---------- */}
       <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Next destination</div>
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Next destination</h2>
           <Link href={`/destinations/${next.id}`} className="group mt-5 inline-flex items-baseline gap-4">
             <span
               className="text-balance font-display font-light leading-[0.95] tracking-[-0.03em] text-bone transition-colors group-hover:text-mist"

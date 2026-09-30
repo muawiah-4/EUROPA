@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { getDestination, haversineKm, type DestinationId } from "@/lib/journey";
+import { DESTINATION_IDS, getDestination, haversineKm, type DestinationId } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, STAY_DURATIONS, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
@@ -31,13 +32,83 @@ const POSITIONS: Record<string, { x: number; y: number }> = (() => {
   return map;
 })();
 
+// ---------- Shareable route URL: /journeys?stops=london,paris,rome ----------
+// The query is untrusted input: anything that isn't a known DestinationId is
+// dropped, duplicates collapse, and the list is capped at the number of
+// destinations the builder can show (every stop at most once).
+const VALID_STOPS = new Set<string>(DESTINATION_IDS);
+const MAX_STOPS = DESTINATION_IDS.length;
+const STOPS_PARAM = "stops";
+
+function parseStops(raw: string | null): DestinationId[] {
+  if (!raw) return [];
+  const out: DestinationId[] = [];
+  for (const part of raw.split(",")) {
+    const id = part.trim().toLowerCase();
+    if (VALID_STOPS.has(id) && !out.includes(id as DestinationId)) out.push(id as DestinationId);
+    if (out.length >= MAX_STOPS) break;
+  }
+  return out;
+}
+
+// Ids are plain lowercase ASCII, so the comma list is written unencoded —
+// URLSearchParams would turn every comma into %2C and make the link ugly.
+function stopsQuery(ids: readonly DestinationId[]) {
+  return ids.length > 0 ? `?${STOPS_PARAM}=${ids.join(",")}` : "";
+}
+
+/**
+ * URL-synced builder. Reads the initial route from `?stops=` and keeps the
+ * query in step with the selection via router.replace (no history entry
+ * per click). useSearchParams() needs a <Suspense> boundary in the page —
+ * app/journeys/page.tsx wraps this and uses JourneyRouteBuilderFallback as
+ * the server-rendered fallback.
+ */
 export default function JourneyRouteBuilder() {
-  // Deliberately starts empty rather than pre-selecting a few stops — this
-  // component used to reveal one fixed preset route, and starting blank
-  // makes the new "you pick, it draws" mechanic unambiguous: nothing on
-  // the map is "the" route until you choose it to be.
-  const [selected, setSelected] = useState<Set<DestinationId>>(() => new Set());
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [initialStops] = useState(() => parseStops(searchParams.get(STOPS_PARAM)));
+
+  // Latest params/router in a ref so the builder's change effect can stay
+  // keyed on the route itself, not on the callback's identity.
+  const latest = useRef({ searchParams, router, pathname });
+  latest.current = { searchParams, router, pathname };
+
+  const syncUrl = useCallback((ids: readonly DestinationId[]) => {
+    const { searchParams: params, router: r, pathname: path } = latest.current;
+    const current = params.get(STOPS_PARAM);
+    const next = ids.join(",");
+    if ((current ?? "") === next && (next !== "" || current === null)) return;
+    const rest = new URLSearchParams(params.toString());
+    rest.delete(STOPS_PARAM);
+    const other = rest.toString();
+    const query = [ids.length > 0 ? `${STOPS_PARAM}=${next}` : "", other].filter(Boolean).join("&");
+    r.replace(query ? `${path}?${query}` : path, { scroll: false });
+  }, []);
+
+  return <RouteBuilder initialStops={initialStops} onRouteChange={syncUrl} />;
+}
+
+/** Static, URL-agnostic render of the builder for the page's Suspense fallback. */
+export function JourneyRouteBuilderFallback() {
+  return <RouteBuilder initialStops={[]} />;
+}
+
+function RouteBuilder({
+  initialStops,
+  onRouteChange,
+}: {
+  initialStops: readonly DestinationId[];
+  onRouteChange?: (ids: readonly DestinationId[]) => void;
+}) {
+  // Starts from the shared link's stops when there are any, otherwise empty
+  // rather than pre-selecting a few — starting blank keeps the "you pick,
+  // it draws" mechanic unambiguous: nothing on the map is "the" route
+  // until you choose it to be.
+  const [selected, setSelected] = useState<Set<DestinationId>>(() => new Set(initialStops));
   const gradientIdBase = useId();
+  const linkFieldId = useId();
 
   const toggle = (id: DestinationId) =>
     setSelected((prev) => {
@@ -70,6 +141,51 @@ export default function JourneyRouteBuilder() {
   const totalDays = orderedStops.reduce((sum, d) => sum + STAY_DURATIONS[d.id], 0);
   const totalTravelHours = legs.reduce((sum, l) => sum + l.travel.hours, 0);
 
+  // The URL always carries the canonical (geographic) order, so the same
+  // set of cities always produces the same link.
+  const routeIds = useMemo(() => orderedStops.map((d) => d.id), [orderedStops]);
+  const routeKey = routeIds.join(",");
+
+  const onRouteChangeRef = useRef(onRouteChange);
+  onRouteChangeRef.current = onRouteChange;
+
+  // Copy-link state: "manual" means the Clipboard API was unavailable or
+  // refused, so the link is shown in a selected text field instead.
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "manual">("idle");
+  const [shareUrl, setShareUrl] = useState("");
+  const linkFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onRouteChangeRef.current?.(routeIds);
+    // Any previously copied/shown link is stale once the route changes.
+    setCopyState("idle");
+    // routeKey captures routeIds' content; the array identity is irrelevant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeKey]);
+
+  useEffect(() => {
+    if (copyState === "copied") {
+      const t = setTimeout(() => setCopyState("idle"), 3000);
+      return () => clearTimeout(t);
+    }
+    if (copyState === "manual") {
+      linkFieldRef.current?.focus();
+      linkFieldRef.current?.select();
+    }
+  }, [copyState, shareUrl]);
+
+  const copyLink = async () => {
+    const url = `${window.location.origin}${window.location.pathname}${stopsQuery(routeIds)}`;
+    setShareUrl(url);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+      await navigator.clipboard.writeText(url);
+      setCopyState("copied");
+    } catch {
+      setCopyState("manual");
+    }
+  };
+
   return (
     <div className="relative">
       {/* Map card */}
@@ -95,11 +211,11 @@ export default function JourneyRouteBuilder() {
         <div className="relative flex flex-col gap-10 md:flex-row md:items-start md:gap-14">
           <div className="md:w-[38%]">
             <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-mist/80">Build your own</div>
-            <h3 className="mt-4 font-display text-3xl font-light leading-[1.05] tracking-[-0.02em] text-bone md:text-4xl">
+            <h2 className="mt-4 font-display text-3xl font-light leading-[1.05] tracking-[-0.02em] text-bone md:text-4xl">
               Pick your places.
               <br />
               Draw your line.
-            </h3>
+            </h2>
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed text-mist">
               Choose any of the ten destinations, on the map or below. However many you pick, the
               route connects them in real geographic order — never a zigzag based on the order you
@@ -159,14 +275,61 @@ export default function JourneyRouteBuilder() {
             </div>
 
             {selected.size > 0 && (
-              <button
-                onClick={() => setSelected(new Set())}
-                data-cursor="link"
-                className="mt-9 font-mono text-[11px] uppercase tracking-[0.24em] text-mist/80 transition-colors hover:text-bone"
-              >
-                Clear trip
-              </button>
+              <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-3">
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  data-cursor="link"
+                  className="font-mono text-[11px] uppercase tracking-[0.24em] text-mist transition-colors hover:text-bone"
+                >
+                  Copy link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Set())}
+                  data-cursor="link"
+                  className="font-mono text-[11px] uppercase tracking-[0.24em] text-mist/80 transition-colors hover:text-bone"
+                >
+                  Clear trip
+                </button>
+              </div>
             )}
+
+            {/* Fallback when the Clipboard API is unavailable or refused:
+                the link is shown here, focused and pre-selected, so a
+                single Ctrl/⌘+C copies it. */}
+            {copyState === "manual" && selected.size > 0 && (
+              <div className="mt-5 max-w-sm">
+                <label htmlFor={linkFieldId} className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist/80">
+                  Route link
+                </label>
+                <input
+                  ref={linkFieldRef}
+                  id={linkFieldId}
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="mt-2 w-full bg-transparent px-3 py-2 font-mono text-[11px] tracking-[0.04em] text-mist outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-bone/70"
+                  style={{ border: "1px solid rgb(var(--bone) / 0.14)" }}
+                />
+              </div>
+            )}
+
+            {/* Always mounted so screen readers pick up the change politely. */}
+            <p
+              role="status"
+              aria-live="polite"
+              className={`font-mono text-[10px] uppercase tracking-[0.2em] ${copyState === "idle" ? "" : "mt-3"} ${
+                copyState === "copied" ? "text-mint" : "text-mist"
+              }`}
+            >
+              {copyState === "copied"
+                ? "Link copied"
+                : copyState === "manual"
+                  ? "Couldn’t copy automatically — the link is selected, press Ctrl+C or ⌘C"
+                  : ""}
+            </p>
           </div>
 
           {/* Map */}

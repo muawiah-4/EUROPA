@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
-import JourneyRouteBuilder from "@/components/JourneyRouteBuilder";
+import JourneyRouteBuilder, { JourneyRouteBuilderFallback } from "@/components/JourneyRouteBuilder";
 import JourneyHeroCollage from "@/components/JourneyHeroCollage";
 import MapWatermark from "@/components/MapWatermark";
 
@@ -41,7 +42,12 @@ export default function JourneysPage() {
           on the page's own bg-void to keep the card reading as raised. */}
       <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
-          <JourneyRouteBuilder />
+          {/* The builder reads ?stops= via useSearchParams, which must sit
+              under a Suspense boundary so the page can still be statically
+              rendered; the fallback is the same builder with no stops. */}
+          <Suspense fallback={<JourneyRouteBuilderFallback />}>
+            <JourneyRouteBuilder />
+          </Suspense>
         </div>
       </section>
 

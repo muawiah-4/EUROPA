@@ -100,6 +100,16 @@ export default function EndSequence({
           </MagneticButton>
           <MagneticButton>
             <Link
+              href="/journeys"
+              tabIndex={interactive ? 0 : -1}
+              data-cursor="link"
+              className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
+            >
+              Plan your route
+            </Link>
+          </MagneticButton>
+          <MagneticButton>
+            <Link
               href="/destinations"
               tabIndex={interactive ? 0 : -1}
               data-cursor="link"

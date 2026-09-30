@@ -25,10 +25,22 @@ Built with Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, and
 
 ```bash
 npm install
-npm run dev      # starts on :3000 (or set PORT to override)
+npm run dev      # starts on :3001
 npm run build
-npm run lint
+npm start        # serves the production build on :3001
 ```
+
+The site runs on port 3001 locally; `lib/site.ts` defaults `SITE_URL` to `http://localhost:3001` (override with `NEXT_PUBLIC_SITE_URL`). Node version is pinned in `.nvmrc` (22).
+
+## Quality checks
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm run lint        # next lint (next/core-web-vitals)
+npm run build       # production build
+```
+
+CI (`.github/workflows/ci.yml`) runs all three on every push and pull request to `main`.
 
 ## Project structure
 

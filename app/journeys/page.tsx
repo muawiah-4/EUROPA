@@ -5,12 +5,16 @@ import GhostHeading from "@/components/GhostHeading";
 import JourneyRouteBuilder, { JourneyRouteBuilderFallback } from "@/components/JourneyRouteBuilder";
 import JourneyHeroCollage from "@/components/JourneyHeroCollage";
 import MapWatermark from "@/components/MapWatermark";
+import { pageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "The Grand European Journey — Europa",
+// Canonical is the bare /journeys path: ?stops= routes are shareable views
+// of this same page, not separate documents to index.
+export const metadata: Metadata = pageMetadata({
+  title: "The Grand European Journey",
   description:
     "Build your own route across the continent — pick any destinations and watch a real, geographically ordered line connect them.",
-};
+  path: "/journeys",
+});
 
 export default function JourneysPage() {
   return (

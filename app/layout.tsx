@@ -4,10 +4,38 @@ import SiteHeader from "@/components/SiteHeader";
 import CustomCursor from "@/components/CustomCursor";
 import AmbientBackground from "@/components/AmbientBackground";
 import MotionProvider from "@/components/MotionProvider";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_OG_IMAGE_ALT,
+  DEFAULT_TITLE,
+  SITE_NAME,
+  SITE_URL,
+  TITLE_SEPARATOR,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "EUROPA — Europe, Beyond the Postcard",
-  description: "An interactive journey through Europe's most unforgettable places.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s${TITLE_SEPARATOR}${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: DEFAULT_OG_IMAGE, alt: DEFAULT_OG_IMAGE_ALT }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: DEFAULT_OG_IMAGE, alt: DEFAULT_OG_IMAGE_ALT }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { DESTINATIONS } from "@/lib/journey";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import IconsOfEurope from "@/components/IconsOfEurope";
 import DestinationsCarousel from "@/components/DestinationsCarousel";
 import MapWatermark from "@/components/MapWatermark";
 
-export const metadata: Metadata = {
-  title: "All Destinations — EUROPA",
-  description: "Every stop on the journey — ten cities across Europe, gathered in one place.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "All Destinations",
+  description:
+    "Every stop on the journey — ten places across Europe, from Paris and Rome to Prague and Iceland, gathered in one place.",
+  path: "/destinations",
+});
 
 export default function DestinationsPage() {
   const ordered = [...DESTINATIONS].sort((a, b) => a.index - b.index);

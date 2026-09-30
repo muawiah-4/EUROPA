@@ -2,7 +2,16 @@ import type { ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { DESTINATIONS, getDestination, getDestinationById, haversineKm, type DestinationId } from "@/lib/journey";
+import {
+  DESTINATIONS,
+  getDestination,
+  getDestinationById,
+  haversineKm,
+  type Destination,
+  type DestinationId,
+} from "@/lib/journey";
+import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, pageMetadata } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
 import { JOURNEY_ROUTE_ORDER, estimateTravelTime } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
@@ -41,13 +50,33 @@ export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
 }
 
+const titleCase = (s: string) => s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
+/** "Rome, Italy" — or just "Iceland" where the stop is the whole country. */
+function placeName(destination: Destination): string {
+  const country = titleCase(destination.country);
+  return destination.city.toLowerCase() === country.toLowerCase() ? destination.city : `${destination.city}, ${country}`;
+}
+
 export function generateMetadata({ params }: { params: { id: string } }): Metadata {
   const destination = getDestinationById(params.id);
-  if (!destination) return {};
-  return {
-    title: `${destination.city} — Europe`,
-    description: destination.overview,
-  };
+  // Unknown ids render notFound(): keep them out of the index, no canonical.
+  if (!destination) return { robots: { index: false, follow: false } };
+
+  // Paris also has the long-form /paris deep-dive; this page is explicitly
+  // the overview so the two don't compete for the same query.
+  const title = destination.deepDiveHref
+    ? `${placeName(destination)} — Destination Overview`
+    : `${placeName(destination)} — Destination Guide`;
+
+  return pageMetadata({
+    title,
+    description: `${destination.tagline} ${destination.overview}`,
+    path: `/destinations/${destination.id}`,
+    image: destination.photoSrc,
+    imageAlt: `${destination.city}, ${titleCase(destination.country)}`,
+    ogType: "article",
+  });
 }
 
 export default function DestinationPage({ params }: { params: { id: string } }) {
@@ -74,8 +103,42 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
     return { km, hours, mode };
   };
 
+  const pageUrl = absoluteUrl(`/destinations/${destination.id}`);
+  const images = [destination.photoSrc ?? DEFAULT_OG_IMAGE, ...(destination.galleryPhotos ?? []).map((p) => p.src)].map(
+    (src) => absoluteUrl(src)
+  );
+
   return (
     <main className="bg-void">
+      {/* Descriptive only — no offers, prices or bookable claims. */}
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "TouristDestination",
+            "@id": `${pageUrl}#destination`,
+            name: destination.city,
+            description: destination.overview,
+            url: pageUrl,
+            image: images,
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: destination.coordinates.lat,
+              longitude: destination.coordinates.lon,
+            },
+            containedInPlace: { "@type": "Country", name: titleCase(destination.country) },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: SITE_NAME, item: absoluteUrl("/") },
+              { "@type": "ListItem", position: 2, name: "Destinations", item: absoluteUrl("/destinations") },
+              { "@type": "ListItem", position: 3, name: destination.city, item: pageUrl },
+            ],
+          },
+        ]}
+      />
       {/* Entrance-fade keyframes, scoped to this page only */}
       <style>{`
         @keyframes destHeroFade {

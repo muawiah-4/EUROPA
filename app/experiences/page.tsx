@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import ExperienceCategories from "@/components/ExperienceCategories";
 import SeasonSelector from "@/components/SeasonSelector";
 import MapWatermark from "@/components/MapWatermark";
 
-export const metadata: Metadata = {
-  title: "Experiences — Europa",
+export const metadata: Metadata = pageMetadata({
+  title: "Experiences",
   description: "Six ways to experience Europe, and how the continent changes with the seasons.",
-};
+  path: "/experiences",
+});
 
 export default function ExperiencesPage() {
   return (

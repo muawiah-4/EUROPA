@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { DESTINATIONS, getDestinationById } from "@/lib/journey";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import DestinationsMap from "@/components/DestinationsMap";
@@ -17,11 +18,12 @@ const ABOUT_PHOTO_FILTER = "grayscale(0.25) sepia(0.15) saturate(0.8) brightness
 // criterion, so the strip reads as "ten places" at a glance.
 const HERO_COLLAGE_IDS = ["rome", "venice", "santorini", "iceland", "prague"] as const;
 
-export const metadata: Metadata = {
-  title: "About — Europa",
+export const metadata: Metadata = pageMetadata({
+  title: "About",
   description:
     "What this site is, how it was built, and which parts are original work versus real photography.",
-};
+  path: "/about",
+});
 
 const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string } }[] = [
   {

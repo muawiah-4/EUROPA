@@ -80,7 +80,7 @@ export const STAY_DURATIONS: Record<DestinationId, number> = {
   amsterdam: 2,
   prague: 2,
   alps: 3,
-  venice: 2,
+  venice: 3,
   rome: 3,
   santorini: 2,
   barcelona: 2,

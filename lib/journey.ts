@@ -456,7 +456,7 @@ export const DESTINATIONS: Destination[] = [
     history:
       "Spared the leveling that reshaped so many European capitals after the wars, Prague kept its medieval street plan and skyline largely intact, layer laid on layer since the 14th century.",
     culture:
-      "The astronomical clock on Old Town Hall has marked the hour the same way since 1410 — a small mechanical ritual the city still gathers to watch.",
+      "The Orloj, the astronomical clock on Old Town Hall, has kept time since 1410 — repaired and added to over six centuries, and still a small mechanical ritual the city gathers to watch on the hour.",
     highlights: [
       "A 600-year-old astronomical clock that still keeps time",
       "Copper domes and spires oxidized to a permanent green",
@@ -488,6 +488,13 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "aurora",
     sky: ["#0a1410", "#050706"],
     accent: "#4fd1a5",
+    // Deliberately the country's geographic centre, not Reykjavík (~64.1466,
+    // -21.9426): unlike every other stop, this one is presented as the whole
+    // country's landscape (city "Iceland", LOCATION "ICELAND", gallery spread
+    // from Reynisfjara to Seyðisfjörður). Consequence: the specimen stamp,
+    // map pins and Grand Tour leg distances measure to the island's centre,
+    // not an arrival city. Both points sit inside europeGeo.ts's projection
+    // bounds (lat 34–67, lon -25–33).
     coordinates: { lat: 64.9631, lon: -19.0208 },
     pace: "slow",
     tagline: "Where the ground still decides what to become.",

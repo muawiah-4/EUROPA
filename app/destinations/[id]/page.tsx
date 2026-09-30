@@ -54,14 +54,15 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
   const destination = getDestinationById(params.id);
   if (!destination) notFound();
 
-  const currentIndex = DESTINATIONS.findIndex((d) => d.id === destination.id);
-  const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
   const KineticWordmark = KINETIC_WORDMARKS[destination.id];
 
   // This destination's real place on the Grand Tour route (lib/europeGeo.ts's
-  // geographic travel order), not the site's narrative chapter order above —
-  // replaces the old standalone map section with concrete route data instead.
+  // geographic travel order) — replaces the old standalone map section with
+  // concrete route data instead. The "Next destination" cross-link at the
+  // foot of the page follows the same order (wrapping from the last stop
+  // back to the first), so the page's two "next" links never disagree.
   const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id);
+  const next = getDestination(JOURNEY_ROUTE_ORDER[(routeIndex + 1) % JOURNEY_ROUTE_ORDER.length]);
   const prevStop = routeIndex > 0 ? getDestination(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
   const nextStop =
     routeIndex >= 0 && routeIndex < JOURNEY_ROUTE_ORDER.length - 1

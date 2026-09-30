@@ -87,7 +87,7 @@ const ICONS: {
     destinationId: "prague",
     name: "The Astronomical Clock",
     category: "HISTORY",
-    description: "A dial that has tracked the sun, the moon, and the zodiac since 1410, still correct.",
+    description: "Installed in 1410, the Orloj's dial still tracks the sun, the moon, and the zodiac.",
     photo: "/destinations/prague-gallery-3.jpg",
   },
   {

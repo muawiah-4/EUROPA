@@ -3,6 +3,12 @@
 // Ambient animated WebGL color-wash background (Stripe-style mesh gradient).
 // Ported as a self-contained component — no external deps beyond React —
 // and integrated as the homepage hero's backdrop, behind the globe.
+//
+// Attribution: the MiniGl renderer, shaders and gradient logic below are
+// adapted from the animated WebGL gradient ("minigl") shipped on stripe.com,
+// by way of Kevin Hufnagl's widely shared standalone port of it. The
+// original code is © Stripe, Inc.; no licence for it is stated in this repo,
+// so treat this file as third-party-derived, not original work.
 
 import { useEffect, useRef } from "react";
 

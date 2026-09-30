@@ -46,19 +46,10 @@ export type ParisNeighborhood = {
   aspect: number;
 };
 
-// The Act 01 "Paris in Motion" establishing shot — a rooftop sunset with
-// the tower distant. Shown full-bleed before the camera dollies into the
-// Eiffel Tower billboard.
-export const PARIS_HERO_PHOTO = "/paris/hero.jpg";
-export const PARIS_HERO_ASPECT = 1.5;
-
 function evenRanges(start: number, end: number, count: number): [number, number][] {
   const step = (end - start) / count;
   return Array.from({ length: count }, (_, i) => [start + i * step, start + (i + 1) * step] as [number, number]);
 }
-
-export const PARIS_ACCENT = "#e8c07a";
-export const PARIS_SKY: [string, string] = ["#241a12", "#0d0a08"];
 
 // Total scroll length, in vh. Act 01 is a short establishing beat; Act 02
 // carries seven real dwell-and-transition landmark visits; Act 03 gives

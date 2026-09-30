@@ -6,14 +6,11 @@ import type { Destination } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
 /**
- * One destination's full-viewport stage, split into two pieces so the
- * homepage's single shared 3D landmark canvas (JourneyLandmarkStage) can be
- * mounted once, between all ten chapters' backgrounds and all ten
- * chapters' typography, and still land in the correct visual stack order:
- * sky + atmosphere (this file's Background) -> landmark -> typography
- * (this file's Foreground). Previously this was one component that also
- * rendered a per-chapter flat-SVG `landmark` prop in between; that prop is
- * gone — see components/three/JourneyLandmarkStage.tsx.
+ * One destination's full-viewport stage, split into two pieces so
+ * JourneyExperience can stack all ten chapters' backgrounds (photo +
+ * atmosphere, this file's Background) beneath all ten chapters' typography
+ * (this file's Foreground), with the shared JourneyGradientStage canvas
+ * painted underneath both.
  *
  * Opacity is driven by a shared crossfade window centered on the chapter's
  * own scroll boundary, the same fix applied on the PRX project — see the

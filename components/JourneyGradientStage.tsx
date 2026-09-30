@@ -39,8 +39,7 @@ function isStageVisible(p: number) {
  * active destination changes. Mounting ten separate WebGL contexts (one
  * per chapter, all crossfaded via opacity like the chapters themselves)
  * would be wasteful and janky; one canvas that repaints its uniforms on
- * change — see Gradient.setColors — is the same pattern JourneyLandmarkStage
- * already uses for the 3D landmarks.
+ * change (see Gradient.setColors) keeps it to a single context.
  */
 export default function JourneyGradientStage({ progress }: { progress: MotionValue<number> }) {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -364,7 +364,7 @@ export class Gradient {
   isPlaying = false;
 
   // prefers-reduced-motion support — same matchMedia + change-listener idiom
-  // as GlobeHero/FloatingLandmark (components/three/*.tsx). Read on
+  // as GlobeHero (components/three/GlobeHero.tsx). Read on
   // construction and kept live via the change listener so an in-session OS
   // preference flip is honored immediately.
   reducedMotion = false;

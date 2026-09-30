@@ -2,9 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-// app/destinations/[id]/page.tsx is a server component — same thin
-// client-wrapper role as DestinationLandmark.tsx, so the WebGL canvas
-// never touches SSR.
+// app/destinations/[id]/page.tsx is a server component — this thin
+// client wrapper exists so the WebGL canvas never touches SSR.
 const GradientWave = dynamic(() => import("@/components/GradientWave").then((m) => m.GradientWave), { ssr: false });
 
 export default function DestinationGradientBackdrop({ sky, accent }: { sky: [string, string]; accent: string }) {

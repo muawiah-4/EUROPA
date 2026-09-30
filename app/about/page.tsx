@@ -196,7 +196,8 @@ export default function AboutPage() {
           </div>
 
           <p className="mt-10 text-[13px] font-light leading-relaxed text-smoke">
-            Photography is used for non-commercial portfolio demonstration; credits to be added.
+            Photography sourced from Unsplash and Pexels under their respective free licences. Individual
+            photographer credits weren&apos;t recorded.
           </p>
         </div>
       </section>

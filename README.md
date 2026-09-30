@@ -53,5 +53,5 @@ public/              Destination photography, gallery images, maps
 
 ## Credits
 
-- Photography is used for non-commercial portfolio demonstration; credits to be added.
+- Photography sourced from [Unsplash](https://unsplash.com/license) and [Pexels](https://www.pexels.com/license/) under their respective free licences. Individual photographer credits weren't recorded.
 - `components/GradientWave.tsx` is adapted from Stripe's animated WebGL gradient ("minigl", © Stripe, Inc.) via Kevin Hufnagl's standalone port — see the file header.

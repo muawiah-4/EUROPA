@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import ExperienceCategories from "@/components/ExperienceCategories";
 import SeasonSelector from "@/components/SeasonSelector";
 import MapWatermark from "@/components/MapWatermark";
 
-export const metadata: Metadata = {
-  title: "Experiences — Europa",
+export const metadata: Metadata = pageMetadata({
+  title: "Experiences",
   description: "Six ways to experience Europe, and how the continent changes with the seasons.",
-};
+  path: "/experiences",
+});
 
 export default function ExperiencesPage() {
   return (
@@ -16,7 +18,7 @@ export default function ExperiencesPage() {
       <MapWatermark align="right" />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pb-16 pt-32 md:px-10 md:pb-20 md:pt-40">
-        <GhostHeading align="left" className="top-2 opacity-70 md:top-6">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="top-2 opacity-70 md:top-6">
           EXPERIENCES
         </GhostHeading>
         <div className="relative mx-auto max-w-3xl">

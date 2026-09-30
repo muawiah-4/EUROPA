@@ -1,15 +1,20 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
-import JourneyRouteBuilder from "@/components/JourneyRouteBuilder";
+import JourneyRouteBuilder, { JourneyRouteBuilderFallback } from "@/components/JourneyRouteBuilder";
 import JourneyHeroCollage from "@/components/JourneyHeroCollage";
 import MapWatermark from "@/components/MapWatermark";
+import { pageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "The Grand European Journey — Europa",
+// Canonical is the bare /journeys path: ?stops= routes are shareable views
+// of this same page, not separate documents to index.
+export const metadata: Metadata = pageMetadata({
+  title: "The Grand European Journey",
   description:
     "Build your own route across the continent — pick any destinations and watch a real, geographically ordered line connect them.",
-};
+  path: "/journeys",
+});
 
 export default function JourneysPage() {
   return (
@@ -18,7 +23,7 @@ export default function JourneysPage() {
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pb-16 pt-32 md:px-10 md:pb-24 md:pt-40">
         <JourneyHeroCollage />
-        <GhostHeading align="left" className="-top-2 opacity-70 md:top-2">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="-top-2 opacity-70 md:top-2">
           JOURNEYS
         </GhostHeading>
         <div className="relative mx-auto max-w-3xl">
@@ -41,7 +46,12 @@ export default function JourneysPage() {
           on the page's own bg-void to keep the card reading as raised. */}
       <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
-          <JourneyRouteBuilder />
+          {/* The builder reads ?stops= via useSearchParams, which must sit
+              under a Suspense boundary so the page can still be statically
+              rendered; the fallback is the same builder with no stops. */}
+          <Suspense fallback={<JourneyRouteBuilderFallback />}>
+            <JourneyRouteBuilder />
+          </Suspense>
         </div>
       </section>
 

@@ -6,6 +6,8 @@ import { Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
+import Image from "next/image";
+import WebGLErrorBoundary from "@/components/WebGLErrorBoundary";
 import {
   PARIS_LANDMARKS,
   PARIS_NEIGHBORHOODS,
@@ -178,18 +180,34 @@ export default function ParisScene({ progress }: { progress: MotionValue<number>
 
   return (
     <div className="absolute inset-0">
-      <Canvas
-        dpr={[1, 1.6]}
-        gl={{ antialias: true, alpha: true }}
-        camera={{ position: OVERVIEW_POS.toArray(), fov: 42 }}
-        onCreated={({ scene, gl }) => {
-          scene.fog = new THREE.FogExp2(0x120e0a, 0.032);
-          gl.setClearColor(0x0d0a08, 1);
-        }}
-      >
-        <CameraRig progressRef={progressRef} />
-        <Cityscape progressRef={progressRef} />
-      </Canvas>
+      <WebGLErrorBoundary fallback={<ParisSceneFallback />}>
+        <Canvas
+          dpr={[1, 1.6]}
+          gl={{ antialias: true, alpha: true }}
+          camera={{ position: OVERVIEW_POS.toArray(), fov: 42 }}
+          onCreated={({ scene, gl }) => {
+            scene.fog = new THREE.FogExp2(0x120e0a, 0.032);
+            gl.setClearColor(0x0d0a08, 1);
+          }}
+        >
+          <CameraRig progressRef={progressRef} />
+          <Cityscape progressRef={progressRef} />
+        </Canvas>
+      </WebGLErrorBoundary>
+    </div>
+  );
+}
+
+// Static stand-in when WebGL is unavailable: the Paris hero photo, dimmed
+// into the scene's own warm near-black (its clear color and fog tint).
+function ParisSceneFallback() {
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden" style={{ backgroundColor: "#0d0a08" }}>
+      <Image src="/paris/hero.jpg" alt="" fill sizes="100vw" className="object-cover opacity-50" />
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(ellipse at center, rgba(18,14,10,0.2) 0%, #0d0a08 85%)" }}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { DESTINATIONS, getDestinationById, type AtmosphereKind, type Destination } from "@/lib/journey";
+import { DESTINATIONS, getDestination, type AtmosphereKind, type Destination, type DestinationId } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import DestinationPhotoBackdrop from "@/components/DestinationPhotoBackdrop";
 
@@ -17,8 +17,10 @@ type Season = {
   copy: string;
   /** A representative photo + a season-specific tint — deliberately its
    * own color identity, not the pictured destination's own accent, so the
-   * four seasons read as four distinct moods rather than four cities. */
-  photoId: string;
+   * four seasons read as four distinct moods rather than four cities.
+   * Only tints the one season backdrop on screen; the tab row and city
+   * chips stay monochrome + mint (the site's single UI accent). */
+  photoId: DestinationId;
   sky: [string, string];
   accent: string;
 };
@@ -86,6 +88,7 @@ export default function SeasonSelector() {
   const [active, setActive] = useState<SeasonId>("spring");
   const season = SEASONS.find((s) => s.id === active) ?? SEASONS[0];
   const picks = destinationsFor(season);
+  const seasonPhoto = getDestination(season.photoId).photoSrc;
 
   return (
     <div>
@@ -101,8 +104,9 @@ export default function SeasonSelector() {
               className="group relative flex flex-col items-center gap-2.5 outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-bone/70"
             >
               <span
-                className="font-mono text-[11px] uppercase tracking-[0.28em] transition-colors"
-                style={{ color: isActive ? s.accent : "rgba(184,182,174,0.45)" }}
+                className={`font-mono text-[11px] uppercase tracking-[0.28em] transition-colors ${
+                  isActive ? "text-mint" : "text-mist/70 group-hover:text-mist"
+                }`}
               >
                 {s.label}
               </span>
@@ -110,7 +114,7 @@ export default function SeasonSelector() {
                 className="h-[2px] rounded-full transition-all duration-300"
                 style={{
                   width: isActive ? "26px" : "8px",
-                  background: isActive ? s.accent : "rgba(184,182,174,0.3)",
+                  background: isActive ? "rgb(var(--mint))" : "rgb(var(--mist) / 0.3)",
                 }}
               />
             </button>
@@ -128,10 +132,10 @@ export default function SeasonSelector() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="relative flex min-h-[420px] flex-col justify-end overflow-hidden bg-panel px-8 py-14 md:px-16 md:py-20"
           >
-            {getDestinationById(season.photoId)?.photoSrc && (
+            {seasonPhoto && (
               <div aria-hidden className="absolute inset-0">
                 <DestinationPhotoBackdrop
-                  photos={[getDestinationById(season.photoId)!.photoSrc!]}
+                  photos={[seasonPhoto]}
                   sky={season.sky}
                   accent={season.accent}
                 />
@@ -156,8 +160,7 @@ export default function SeasonSelector() {
                     key={d.id}
                     href={`/destinations/${d.id}`}
                     data-cursor="link"
-                    className="hairline rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors hover:border-bone/40"
-                    style={{ color: d.accent }}
+                    className="hairline rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-mist transition-colors hover:border-mint/50 hover:text-mint"
                   >
                     {d.city}
                   </Link>

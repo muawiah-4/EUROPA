@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import { DESTINATIONS } from "@/lib/journey";
 import MagneticButton from "@/components/MagneticButton";
+import { track } from "@/lib/analytics";
 
 export default function EndSequence({
   progress,
@@ -15,9 +17,25 @@ export default function EndSequence({
   const start = 0.97;
   const opacity = useTransform(progress, [start, start + 0.02], [0, 1]);
   const scale = useTransform(progress, [start, 1], [1.08, 1]);
+  const [p, setP] = useState(() => progress.get());
+
+  useEffect(() => {
+    setP(progress.get());
+    const unsub = progress.on("change", setP);
+    return () => unsub();
+  }, [progress]);
+
+  // Same gating as InteractiveMap: while faded out (the whole journey until
+  // ~97%), this full-screen layer must not swallow clicks meant for the map
+  // beneath it, nor expose its buttons to Tab / screen readers.
+  const interactive = p > start + 0.001;
 
   return (
-    <motion.div style={{ opacity }} className="absolute inset-0 z-30 flex items-center justify-center bg-void">
+    <motion.div
+      style={{ opacity, pointerEvents: interactive ? "auto" : "none" }}
+      aria-hidden={!interactive}
+      className="absolute inset-0 z-30 flex items-center justify-center bg-void"
+    >
       <motion.div style={{ scale }} className="relative flex flex-col items-center px-6 text-center">
         {/*
           Constellation of every visited destination. Previously positioned
@@ -47,11 +65,11 @@ export default function EndSequence({
               >
                 <span
                   className="absolute left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[3px]"
-                  style={{ backgroundColor: d.accent, opacity: 0.35 }}
+                  style={{ backgroundColor: "rgb(var(--mint))", opacity: 0.35 }}
                 />
                 <span
                   className="absolute left-0 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{ backgroundColor: d.accent, opacity: 0.85 }}
+                  style={{ backgroundColor: "rgb(var(--mint))", opacity: 0.85 }}
                 />
               </span>
             );
@@ -71,18 +89,31 @@ export default function EndSequence({
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton>
+          <MagneticButton pullRatio={0.35}>
             <button
               onClick={onRestart}
+              tabIndex={interactive ? 0 : -1}
               data-cursor="link"
               className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
             >
               Explore again
             </button>
           </MagneticButton>
-          <MagneticButton>
+          <MagneticButton pullRatio={0.35}>
+            <Link
+              href="/journeys"
+              onClick={() => track("plan_route_click", { source: "end_sequence" })}
+              tabIndex={interactive ? 0 : -1}
+              data-cursor="link"
+              className="hairline rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
+            >
+              Plan your route
+            </Link>
+          </MagneticButton>
+          <MagneticButton pullRatio={0.35}>
             <Link
               href="/destinations"
+              tabIndex={interactive ? 0 : -1}
               data-cursor="link"
               className="rounded-full bg-bone px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-void transition-opacity hover:opacity-80"
             >

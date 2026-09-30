@@ -1,6 +1,9 @@
 "use client";
 
-import { motion, useTransform, type MotionValue } from "framer-motion";
+import { useState } from "react";
+import Link from "next/link";
+import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
+import { track } from "@/lib/analytics";
 
 export default function HeroTitle({
   progress,
@@ -12,6 +15,15 @@ export default function HeroTitle({
   const opacity = useTransform(progress, [0, heroEnd * 0.7, heroEnd], [1, 1, 0]);
   const y = useTransform(progress, [0, heroEnd], [0, -60]);
   const scrollHintOpacity = useTransform(progress, [0, heroEnd * 0.4], [1, 0]);
+
+  // The hero layer is pointer-events-none so scroll/drag reaches the globe;
+  // only the route link opts back in, and only while the hero is actually
+  // visible (it's fully opaque until 70% of heroEnd, gone at heroEnd) —
+  // same gating as EndSequence / InteractiveMap so a faded-out link never
+  // catches clicks or Tab focus.
+  const linkCutoff = heroEnd * 0.85;
+  const [linkInteractive, setLinkInteractive] = useState(() => progress.get() < linkCutoff);
+  useMotionValueEvent(progress, "change", (v) => setLinkInteractive(v < linkCutoff));
 
   return (
     <motion.div style={{ opacity, y }} className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center">
@@ -52,6 +64,25 @@ export default function HeroTitle({
       >
         Europe, beyond the postcard — an interactive journey through the continent&rsquo;s most unforgettable places.
       </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
+        className="mt-8"
+      >
+        <Link
+          href="/journeys"
+          onClick={() => track("plan_route_click", { source: "hero" })}
+          tabIndex={linkInteractive ? 0 : -1}
+          aria-hidden={!linkInteractive}
+          data-cursor="link"
+          className="hairline inline-block rounded-full px-7 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-mist transition-colors hover:border-bone/40 hover:text-bone"
+          style={{ pointerEvents: linkInteractive ? "auto" : "none" }}
+        >
+          Plan your route
+        </Link>
+      </motion.div>
 
       {/*
         Scroll-hint opacity was previously driven two ways at once: the

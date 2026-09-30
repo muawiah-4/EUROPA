@@ -6,14 +6,11 @@ import type { Destination } from "@/lib/journey";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 
 /**
- * One destination's full-viewport stage, split into two pieces so the
- * homepage's single shared 3D landmark canvas (JourneyLandmarkStage) can be
- * mounted once, between all ten chapters' backgrounds and all ten
- * chapters' typography, and still land in the correct visual stack order:
- * sky + atmosphere (this file's Background) -> landmark -> typography
- * (this file's Foreground). Previously this was one component that also
- * rendered a per-chapter flat-SVG `landmark` prop in between; that prop is
- * gone — see components/three/JourneyLandmarkStage.tsx.
+ * One destination's full-viewport stage, split into two pieces so
+ * JourneyExperience can stack all ten chapters' backgrounds (photo +
+ * atmosphere, this file's Background) beneath all ten chapters' typography
+ * (this file's Foreground), with the shared JourneyGradientStage canvas
+ * painted underneath both.
  *
  * Opacity is driven by a shared crossfade window centered on the chapter's
  * own scroll boundary, the same fix applied on the PRX project — see the
@@ -30,9 +27,14 @@ export function useChapterOpacity(
 ) {
   const [s, e] = range;
   const hw = halfWidth ?? Math.min(0.018, (e - s) / 4);
-  if (isFirst) return useTransform(progress, [s, e - hw, e + hw], [1, 1, 0]);
-  if (isLast) return useTransform(progress, [s - hw, s + hw, e], [0, 1, 1]);
-  return useTransform(progress, [s - hw, s + hw, e - hw, e + hw], [0, 1, 1, 0]);
+  // Keyframes are chosen up front so useTransform is called unconditionally
+  // (rules of hooks) — first chapter has no fade-in, last has no fade-out.
+  const [input, output] = isFirst
+    ? [[s, e - hw, e + hw], [1, 1, 0]]
+    : isLast
+      ? [[s - hw, s + hw, e], [0, 1, 1]]
+      : [[s - hw, s + hw, e - hw, e + hw], [0, 1, 1, 0]];
+  return useTransform(progress, input, output);
 }
 
 // Headline/copy sits in the same fixed screen position across every
@@ -41,7 +43,26 @@ export function useChapterOpacity(
 // gets its own much narrower crossfade so the swap stays crisp and legible.
 export const TEXT_HALF_WIDTH = 0.004;
 
-export function StoryChapterBackground({ destination, opacity }: { destination: Destination; opacity: MotionValue<number> }) {
+export function StoryChapterBackground({
+  destination,
+  opacity,
+  active = true,
+  loadPhoto = true,
+  priority = false,
+}: {
+  destination: Destination;
+  opacity: MotionValue<number>;
+  /** Whether this chapter is currently visible — gates the particle loop. */
+  active?: boolean;
+  /**
+   * Whether the photo should be requested yet. Every chapter is stacked in
+   * the same sticky viewport, so native lazy-loading sees all ten as
+   * in-view; the journey instead flips this on for the active chapter and
+   * its neighbours only.
+   */
+  loadPhoto?: boolean;
+  priority?: boolean;
+}) {
   // The flat linear-gradient sky div that used to live here is gone — the
   // homepage's shared JourneyGradientStage now paints the animated
   // equivalent underneath every chapter (see JourneyExperience.tsx). Every
@@ -55,13 +76,14 @@ export function StoryChapterBackground({ destination, opacity }: { destination: 
   // page's quieter one.
   return (
     <motion.div style={{ opacity }} className="absolute inset-0" aria-hidden>
-      {destination.photoSrc && (
+      {destination.photoSrc && loadPhoto && (
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={destination.photoSrc}
             alt=""
             fill
             sizes="100vw"
+            priority={priority}
             className="object-cover"
             style={{ filter: "grayscale(0.08) sepia(0.06) saturate(1.05) brightness(0.72) contrast(1.05)" }}
           />
@@ -86,7 +108,7 @@ export function StoryChapterBackground({ destination, opacity }: { destination: 
           />
         </div>
       )}
-      <AtmosphereParticles kind={destination.atmosphere} />
+      <AtmosphereParticles kind={destination.atmosphere} active={active} />
     </motion.div>
   );
 }

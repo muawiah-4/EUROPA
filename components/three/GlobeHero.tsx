@@ -1,11 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { useMotionValueEvent } from "framer-motion";
 import { EUROPE_POINTS } from "@/lib/europeGeo";
+import { DESTINATIONS, JOURNEY_MARKS } from "@/lib/journey";
+import WebGLErrorBoundary from "@/components/WebGLErrorBoundary";
+
+// The globe is only uncovered during the hero + cloud descent (until the
+// opaque journey gradient stage has faded in over the first chapter) and
+// again briefly at the very end, between that stage fading out and the
+// opaque outro covering everything. Outside those windows the canvas stops
+// rendering entirely (frameloop "never") — it stays mounted, so there's no
+// remount flash scrolling back, and simply keeps its last frame.
+const COVER_FADE = 0.02;
+const COVER_START = DESTINATIONS[0].range[0] + COVER_FADE;
+const COVER_END = DESTINATIONS[DESTINATIONS.length - 1].range[1] - COVER_FADE;
+const OUTRO_OPAQUE = JOURNEY_MARKS.outroStart + 0.02;
+
+function isGlobeVisible(p: number) {
+  return p < COVER_START || (p > COVER_END && p < OUTRO_OPAQUE);
+}
 
 // Major destinations get a brighter marker point, matching the journey data.
 // One shared mint marker color, not a per-destination accent palette — the
@@ -29,11 +46,15 @@ const CITY_MARKERS: { lat: number; lon: number; color: string }[] = [
   { lat: 64.96, lon: -19.02, color: MARKER_COLOR }, // Iceland — sits apart from the cluster, geographically honest
 ];
 
-// The globe's single "sun" tint — reused verbatim from the Paris marker
-// color so the atmosphere glow never introduces a hue outside the existing
-// per-destination accent palette. Paris is also the first chapter the hero
-// dollies into, so a golden-hour rim glow reads as a deliberate handoff.
-const SUN_TINT = "#e8c07a";
+// The globe's glow tints — all derived from the site's single mint accent
+// (--mint / #3bba9c) so the hero ring matches the logo and markers instead
+// of introducing a warm hue. SUN_TINT is a lighter mint for the fresnel
+// limb, where additive blending over near-black needs extra luminance to
+// read as a glow rather than a flat outline; the ambient halo and the CSS
+// fallback's inner shade use the base and a deeper mint respectively.
+const SUN_TINT = "#7fdcc4";
+const HALO_TINT = MARKER_COLOR;
+const MINT_DEEP = "#1f7a64";
 
 function toVec3(lat: number, lon: number, r: number) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -272,8 +293,11 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state, rawDelta) => {
     const reduced = reducedMotionRef.current;
+    // The frame loop is paused while the globe is covered; clamp the first
+    // delta after resuming so rotation doesn't jump by the whole pause.
+    const delta = Math.min(rawDelta, 0.1);
 
     if (group.current) {
       group.current.rotation.y += delta * (reduced ? 0.006 : 0.045);
@@ -305,7 +329,7 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
   return (
     <>
       <ambientLight intensity={0.06} />
-      <directionalLight position={sunPosition} intensity={1.3} color="#f2e6cf" />
+      <directionalLight position={sunPosition} intensity={1.3} color="#e4f3ee" />
       <directionalLight position={[-sunPosition[0], -sunPosition[1] * 0.5, -sunPosition[2]]} intensity={0.05} color="#3a3e44" />
 
       <group ref={group}>
@@ -387,7 +411,7 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
         <sprite scale={[6.4, 6.4, 1]}>
           <spriteMaterial
             map={glowTexture}
-            color={SUN_TINT}
+            color={HALO_TINT}
             transparent
             opacity={0.1}
             depthWrite={false}
@@ -401,19 +425,40 @@ function Globe({ progressRef }: { progressRef: { current: number } }) {
 
 export default function GlobeHero({ progress }: { progress: MotionValue<number> }) {
   const progressRef = useRef(0);
+  const [visible, setVisible] = useState(() => isGlobeVisible(progress.get()));
   useMotionValueEvent(progress, "change", (v) => {
     progressRef.current = v;
+    setVisible(isGlobeVisible(v));
   });
 
   return (
     <div className="absolute inset-0">
-      <Canvas
-        dpr={[1, 1.6]}
-        gl={{ antialias: true, alpha: true }}
-        camera={{ position: [0, 0.4, 6.4], fov: 42 }}
-      >
-        <Globe progressRef={progressRef} />
-      </Canvas>
+      <WebGLErrorBoundary fallback={<GlobeFallback />}>
+        <Canvas
+          frameloop={visible ? "always" : "never"}
+          dpr={[1, 1.6]}
+          gl={{ antialias: true, alpha: true }}
+          camera={{ position: [0, 0.4, 6.4], fov: 42 }}
+        >
+          <Globe progressRef={progressRef} />
+        </Canvas>
+      </WebGLErrorBoundary>
+    </div>
+  );
+}
+
+// Static stand-in when WebGL is unavailable: the same near-black sphere
+// with the same mint limb glow, drawn with CSS gradients.
+function GlobeFallback() {
+  return (
+    <div aria-hidden className="absolute inset-0 flex items-center justify-center">
+      <div
+        className="aspect-square w-[min(80vw,80vh)] rounded-full"
+        style={{
+          background: "radial-gradient(circle at 62% 38%, #16171a 0%, #0a0b0d 58%)",
+          boxShadow: `0 0 80px 6px ${HALO_TINT}40, 0 0 24px 1px ${SUN_TINT}33, inset -18px 10px 60px ${MINT_DEEP}33`,
+        }}
+      />
     </div>
   );
 }

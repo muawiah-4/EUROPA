@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { DESTINATIONS, getDestinationById } from "@/lib/journey";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import DestinationsMap from "@/components/DestinationsMap";
@@ -17,13 +18,14 @@ const ABOUT_PHOTO_FILTER = "grayscale(0.25) sepia(0.15) saturate(0.8) brightness
 // criterion, so the strip reads as "ten places" at a glance.
 const HERO_COLLAGE_IDS = ["rome", "venice", "santorini", "iceland", "prague"] as const;
 
-export const metadata: Metadata = {
-  title: "About — Europa",
+export const metadata: Metadata = pageMetadata({
+  title: "About",
   description:
-    "What this site is, how it was built, and where it draws the line between original art and real photography.",
-};
+    "What this site is, how it was built, and which parts are original work versus real photography.",
+  path: "/about",
+});
 
-const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string; accent: string } }[] = [
+const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string } }[] = [
   {
     label: "TYPOGRAPHY",
     value: "Each city's own name is its landmark by default — a restrained, place-specific kinetic motion instead of a drawn or modeled object.",
@@ -41,9 +43,9 @@ const CRAFT_ITEMS: { label: string; value: string; photo?: { src: string; accent
     value: "The Grand Tour route on Journeys and Destinations plots real lat/lon coordinates, not an artistic guess at where things are.",
   },
   {
-    label: "PARIS, IN PHOTOGRAPHS",
-    value: "One deliberate exception: Paris carries real photography, graded toward the site's own palette — a hybrid trial for how far this could go.",
-    photo: { src: "/destinations/paris.jpg", accent: "#e8c07a" },
+    label: "PARIS, IN DEPTH",
+    value: "The one place that goes deeper: a standalone scroll through Paris's icons and neighborhoods, built from twelve graded photographs.",
+    photo: { src: "/destinations/paris.jpg" },
   },
 ];
 
@@ -92,7 +94,7 @@ export default function AboutPage() {
                   width: layout.w,
                   aspectRatio: "4 / 5",
                   transform: `rotate(${layout.rotate}deg)`,
-                  border: "1px solid rgba(242,239,233,0.14)",
+                  border: "1px solid rgb(var(--bone) / 0.14)",
                 }}
               >
                 <Image
@@ -113,7 +115,7 @@ export default function AboutPage() {
           })}
         </div>
 
-        <GhostHeading align="left" className="-top-4 opacity-60 md:top-0">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="-top-4 opacity-60 md:top-0">
           ABOUT
         </GhostHeading>
 
@@ -125,14 +127,15 @@ export default function AboutPage() {
             style={{ fontSize: "clamp(2.6rem, 7vw, 5.5rem)" }}
           >
             <span className="block">TEN PLACES.</span>
-            <span className="block">NINE INVENTED. ONE REAL.</span>
+            <span className="block">ONE GOES DEEPER.</span>
           </h1>
 
           <p className="mt-8 max-w-xl text-[15px] font-light leading-relaxed text-mist">
             This site is an interactive, scroll-driven journey through {DESTINATIONS.length} places across
             Europe — {cityList}. It isn&rsquo;t a booking tool or a travel guide. It&rsquo;s a design and motion
-            showcase, built to see how far mood, restraint, and rhythm can carry a screen — and, in one
-            deliberate chapter, how that same restraint holds up once real photography enters the frame.
+            showcase, built to see how far mood, restraint, and rhythm can carry a screen — and how that
+            same restraint holds up once real photography enters the frame, with one place, Paris, taken
+            further than the rest.
           </p>
         </div>
       </section>
@@ -146,14 +149,15 @@ export default function AboutPage() {
             className="text-balance mt-5 font-display font-light leading-[0.98] tracking-[-0.025em] text-bone"
             style={{ fontSize: "clamp(1.9rem, 4vw, 3.1rem)" }}
           >
-            Almost everything here is built, not photographed.
+            Real photographs, held to a quiet palette.
           </h2>
 
           <p className="mt-7 text-[15px] font-light leading-relaxed text-mist">
-            That was the original brief: no real photography anywhere, no landmark drawn or sourced —
-            every destination&rsquo;s name would carry its own restrained kinetic signature instead of an
-            object standing in for the place: a slow gold sweep for Paris, a canal ripple for Venice,
-            deliberate stillness for Rome. A small specimen frame sits around it — corner brackets, real
+            The original brief allowed no real photography at all. The photographs came later; the
+            restraint stayed. Every destination&rsquo;s images are graded toward its own palette rather than
+            shown raw, and no landmark is drawn or modeled — each name carries its own restrained kinetic
+            signature instead of an object standing in for the place: a slow gold sweep for Paris, a canal
+            ripple for Venice, deliberate stillness for Rome. A small specimen frame sits around it — corner brackets, real
             coordinates, a plate number — giving the page structure without drawing anything. Every wisp
             of light or fog is a procedural particle-atmosphere system with its own recipe per place, and
             the globe in the opening scene is a custom-shaded WebGL sphere, built from scratch, with every
@@ -161,13 +165,12 @@ export default function AboutPage() {
           </p>
 
           <p className="mt-5 text-[15px] font-light leading-relaxed text-mist">
-            One chapter breaks the rule on purpose.{" "}
+            One place goes deeper.{" "}
             <Link href="/paris" className="text-mist underline decoration-white/20 underline-offset-4 transition-colors hover:text-bone">
               Paris in Motion
             </Link>{" "}
-            is built from twelve real photographs, each graded toward the destination&rsquo;s own palette
-            rather than shown raw — a hybrid trial for how far the site&rsquo;s restraint holds up once a
-            real image enters the frame, not a reversal of the rule everywhere else. Every route and map on
+            is a standalone chapter built from twelve photographs — its icons first, then its
+            neighborhoods, at a slower, closer pace than any standard destination page. Every route and map on
             the site, meanwhile, was never invented: the{" "}
             <Link href="/journeys" className="text-mist underline decoration-white/20 underline-offset-4 transition-colors hover:text-bone">
               Grand Tour
@@ -181,7 +184,7 @@ export default function AboutPage() {
                 {item.photo && (
                   <div
                     className="relative mb-4 h-14 w-14 overflow-hidden"
-                    style={{ border: `1px solid ${item.photo.accent}66` }}
+                    style={{ border: "1px solid rgb(var(--bone) / 0.14)" }}
                   >
                     <Image src={item.photo.src} alt="" fill sizes="56px" className="object-cover" style={{ filter: ABOUT_PHOTO_FILTER }} />
                   </div>
@@ -191,6 +194,11 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
+
+          <p className="mt-10 text-[13px] font-light leading-relaxed text-smoke">
+            Photography sourced from Unsplash and Pexels under their respective free licences. Individual
+            photographer credits weren&apos;t recorded.
+          </p>
         </div>
       </section>
 
@@ -242,10 +250,10 @@ export default function AboutPage() {
                   style={{ filter: ABOUT_PHOTO_FILTER }}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(0deg, rgb(var(--elevated)), transparent)" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "#e8c07a" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "rgb(var(--mint))" }} />
               </div>
               <div className="p-8 md:p-10">
-                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Option 01</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mist/80">Option 01</div>
                 <div className="mt-4 font-display text-2xl font-light tracking-[-0.02em] text-bone">
                   The full journey
                 </div>
@@ -274,10 +282,10 @@ export default function AboutPage() {
                   style={{ filter: ABOUT_PHOTO_FILTER }}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(0deg, rgb(var(--elevated)), transparent)" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "#5fb8d6" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100" style={{ background: "rgb(var(--mint))" }} />
               </div>
               <div className="p-8 md:p-10">
-                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Option 02</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mist/80">Option 02</div>
                 <div className="mt-4 font-display text-2xl font-light tracking-[-0.02em] text-bone">
                   Browse by destination
                 </div>

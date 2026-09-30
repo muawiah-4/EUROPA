@@ -1,5 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <circle cx="16" cy="16" r="15" fill="#050506" stroke="#e8c07a" stroke-width="1"/>
-  <circle cx="16" cy="16" r="9" fill="none" stroke="#b8b6ae" stroke-width="0.6" opacity="0.5"/>
-  <circle cx="16" cy="16" r="2" fill="#e8c07a"/>
+  <!-- Mirrors components/EuropaMark.tsx: ring of 8 mint stars + a softer
+       mint centre, on a void (#0b0c0e) disc. -->
+  <circle cx="16" cy="16" r="16" fill="#0b0c0e"/>
+  <circle cx="16" cy="5.6" r="1.7" fill="#3bba9c"/>
+  <circle cx="23.35" cy="8.65" r="1.7" fill="#3bba9c"/>
+  <circle cx="26.4" cy="16" r="1.7" fill="#3bba9c"/>
+  <circle cx="23.35" cy="23.35" r="1.7" fill="#3bba9c"/>
+  <circle cx="16" cy="26.4" r="1.7" fill="#3bba9c"/>
+  <circle cx="8.65" cy="23.35" r="1.7" fill="#3bba9c"/>
+  <circle cx="5.6" cy="16" r="1.7" fill="#3bba9c"/>
+  <circle cx="8.65" cy="8.65" r="1.7" fill="#3bba9c"/>
+  <circle cx="16" cy="16" r="1.9" fill="#3bba9c" opacity="0.55"/>
 </svg>

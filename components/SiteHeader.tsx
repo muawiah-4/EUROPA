@@ -34,8 +34,14 @@ export default function SiteHeader() {
   const [scrolled, setScrolled] = useState(!isHome);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Recomputed whenever the route changes: the header persists across
+  // client-side navigations, so inner pages must reset it to solid here
+  // rather than relying on the initial useState value.
   useEffect(() => {
-    if (!isHome) return;
+    if (!isHome) {
+      setScrolled(true);
+      return;
+    }
     const onScroll = () => setScrolled(window.scrollY > 80);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -102,7 +108,7 @@ export default function SiteHeader() {
                 href={l.href}
                 data-cursor="link"
                 className="font-mono text-[10px] uppercase tracking-[0.24em] transition-colors"
-                style={{ color: active ? "rgb(var(--bone))" : "rgba(196,194,186,0.6)" }}
+                style={{ color: active ? "rgb(var(--bone))" : "rgb(var(--mist) / 0.8)" }}
               >
                 {l.label}
               </Link>
@@ -159,7 +165,7 @@ export default function SiteHeader() {
                       className="block border-b py-4 font-display text-4xl font-light tracking-[-0.02em]"
                       style={{
                         color: active ? "rgb(var(--bone))" : "rgb(var(--mist))",
-                        borderColor: "rgba(242,239,233,0.08)",
+                        borderColor: "rgb(var(--bone) / 0.08)",
                       }}
                     >
                       {l.label}

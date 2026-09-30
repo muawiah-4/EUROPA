@@ -121,7 +121,7 @@ export default function DestinationPhotoBackdrop({
               className="h-[3px] rounded-full transition-all duration-500"
               style={{
                 width: i === index ? "18px" : "6px",
-                background: i === index ? accent : "rgba(242,239,233,0.3)",
+                background: i === index ? accent : "rgb(var(--bone) / 0.3)",
               }}
             />
           ))}

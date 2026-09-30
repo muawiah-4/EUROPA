@@ -24,6 +24,14 @@ const START = DESTINATIONS[0].range[0];
 const END = DESTINATIONS[DESTINATIONS.length - 1].range[1];
 const FADE = 0.02;
 
+function skyGradient(d: (typeof DESTINATIONS)[number]) {
+  return `linear-gradient(180deg, ${d.sky[0]}, ${d.sky[1]})`;
+}
+
+function isStageVisible(p: number) {
+  return p > START - FADE && p < END + FADE;
+}
+
 /**
  * Single shared animated background for the whole scroll journey, replacing
  * every chapter's flat `linear-gradient(sky[0], sky[1])` div with one
@@ -31,18 +39,19 @@ const FADE = 0.02;
  * active destination changes. Mounting ten separate WebGL contexts (one
  * per chapter, all crossfaded via opacity like the chapters themselves)
  * would be wasteful and janky; one canvas that repaints its uniforms on
- * change — see Gradient.setColors — is the same pattern JourneyLandmarkStage
- * already uses for the 3D landmarks.
+ * change (see Gradient.setColors) keeps it to a single context.
  */
 export default function JourneyGradientStage({ progress }: { progress: MotionValue<number> }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<Gradient | null>(null);
   const activeIdRef = useRef<string | null>(null);
+  const failedRef = useRef(false);
 
   const opacity = useTransform(progress, [START - FADE, START, END, END + FADE], [0, 1, 1, 0]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     const canvas = document.createElement("canvas");
     Object.assign(canvas.style, {
@@ -52,11 +61,27 @@ export default function JourneyGradientStage({ progress }: { progress: MotionVal
       height: "100%",
       display: "block",
     });
-    containerRef.current.appendChild(canvas);
+    container.appendChild(canvas);
 
     const first = destinationForProgress(START + 0.001) ?? DESTINATIONS[0];
-    const gradient = new Gradient(canvas, colorsForDestination(first));
     activeIdRef.current = first.id;
+
+    let gradient: Gradient;
+    try {
+      gradient = new Gradient(canvas, colorsForDestination(first));
+    } catch (error) {
+      // No WebGL (disabled, blocklisted, or out of contexts): fall back to
+      // the flat per-destination sky gradient the chapters used before this
+      // animated stage existed, kept in sync by the progress listener below.
+      console.warn("JourneyGradientStage: WebGL unavailable, using static sky.", error);
+      container.removeChild(canvas);
+      failedRef.current = true;
+      container.style.background = skyGradient(destinationForProgress(progress.get()) ?? first);
+      return () => {
+        failedRef.current = false;
+        container.style.background = "";
+      };
+    }
 
     gradient.mesh.material.uniforms.u_shadow_power.value = 7;
     gradient.mesh.material.uniforms.u_darken_top.value = 0;
@@ -74,21 +99,30 @@ export default function JourneyGradientStage({ progress }: { progress: MotionVal
       offsetBottom: -0.5,
     });
 
-    gradient.start();
+    // Only animate while the stage is at least partly visible — outside
+    // [START - FADE, END + FADE] its opacity is 0.
+    if (isStageVisible(progress.get())) gradient.start();
     gradientRef.current = gradient;
 
     return () => {
       gradient.stop();
-      if (containerRef.current?.contains(canvas)) containerRef.current.removeChild(canvas);
+      if (container.contains(canvas)) container.removeChild(canvas);
       gradientRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useMotionValueEvent(progress, "change", (p) => {
+    const gradient = gradientRef.current;
+    if (gradient) {
+      if (isStageVisible(p)) gradient.start();
+      else gradient.pause();
+    }
     const d = destinationForProgress(p);
-    if (!d || !gradientRef.current || d.id === activeIdRef.current) return;
+    if (!d || d.id === activeIdRef.current) return;
     activeIdRef.current = d.id;
-    gradientRef.current.setColors(colorsForDestination(d));
+    if (gradient) gradient.setColors(colorsForDestination(d));
+    else if (failedRef.current && containerRef.current) containerRef.current.style.background = skyGradient(d);
   });
 
   return <motion.div ref={containerRef} style={{ opacity }} className="absolute inset-0" aria-hidden />;

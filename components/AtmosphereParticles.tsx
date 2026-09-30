@@ -55,11 +55,21 @@ const CONFIG: Record<
 export default function AtmosphereParticles({
   kind,
   className = "",
+  active = true,
 }: {
   kind: AtmosphereKind;
   className?: string;
+  /**
+   * Parent-controlled gate for the rAF loop — e.g. the home journey's
+   * chapters, which are all stacked in the same sticky viewport (so an
+   * IntersectionObserver alone can't tell them apart) and pass `false`
+   * while faded to opacity 0.
+   */
+  active?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeRef = useRef(active);
+  const syncRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -75,6 +85,7 @@ export default function AtmosphereParticles({
     let particles: Particle[] = [];
     let raf = 0;
     let t = 0;
+    let inView = true;
 
     const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -119,15 +130,44 @@ export default function AtmosphereParticles({
       raf = requestAnimationFrame(step);
     };
 
+    // Only loop while the parent says this layer is showing AND the canvas
+    // is actually on screen; otherwise leave the last frame in place.
+    const sync = () => {
+      const shouldRun = !prefersReduced && activeRef.current && inView;
+      if (shouldRun && !raf) raf = requestAnimationFrame(step);
+      else if (!shouldRun && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    syncRef.current = sync;
+
+    const observer =
+      typeof IntersectionObserver !== "undefined"
+        ? new IntersectionObserver((entries) => {
+            inView = entries[entries.length - 1]?.isIntersecting ?? true;
+            sync();
+          })
+        : null;
+    observer?.observe(canvas);
+
     resize();
     window.addEventListener("resize", resize);
-    if (!prefersReduced) raf = requestAnimationFrame(step);
+    sync();
 
     return () => {
       window.removeEventListener("resize", resize);
+      observer?.disconnect();
       cancelAnimationFrame(raf);
+      raf = 0;
+      syncRef.current = () => {};
     };
   }, [kind]);
+
+  useEffect(() => {
+    activeRef.current = active;
+    syncRef.current();
+  }, [active]);
 
   return <canvas ref={canvasRef} aria-hidden className={`pointer-events-none absolute inset-0 h-full w-full ${className}`} />;
 }

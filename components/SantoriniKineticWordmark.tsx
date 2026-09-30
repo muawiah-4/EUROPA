@@ -55,13 +55,13 @@ export default function SantoriniKineticWordmark({ accent }: { accent: string })
       >
         Santorini
       </h1>
-      <h1
+      <div
         aria-hidden
         className="santorini-wordmark-sheen pointer-events-none absolute left-0 top-0 z-10 select-none whitespace-nowrap font-display font-light leading-[0.92]"
         style={{ fontSize: "clamp(3.5rem, 13vw, 10rem)", width: "max-content" }}
       >
         Santorini
-      </h1>
+      </div>
 
       <div aria-hidden className="santorini-wordmark-rule mt-6 h-px" style={{ backgroundColor: accent }} />
     </div>

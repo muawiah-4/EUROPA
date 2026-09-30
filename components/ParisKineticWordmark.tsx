@@ -71,13 +71,13 @@ export default function ParisKineticWordmark({ accent }: { accent: string }) {
       >
         Paris
       </h1>
-      <h1
+      <div
         aria-hidden
         className="paris-wordmark-sheen pointer-events-none absolute left-0 top-0 z-10 select-none whitespace-nowrap font-display"
         style={{ fontSize: "clamp(3.5rem, 13vw, 10rem)", width: "max-content" }}
       >
         Paris
-      </h1>
+      </div>
 
       <div
         aria-hidden

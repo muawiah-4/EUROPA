@@ -89,7 +89,8 @@ export default function CustomCursor() {
         animate={{
           width: hovering ? 52 : 26,
           height: hovering ? 52 : 26,
-          backgroundColor: hovering ? "rgba(242,239,233,0.08)" : "rgba(242,239,233,0)",
+          // Literal --bone channels: Framer Motion interpolates concrete colours, not var().
+          backgroundColor: hovering ? "rgba(248,248,249,0.08)" : "rgba(248,248,249,0)",
         }}
         transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       />

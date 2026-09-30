@@ -62,13 +62,13 @@ export default function AlpsKineticWordmark({ accent }: { accent: string }) {
       >
         The Alps
       </h1>
-      <h1
+      <div
         aria-hidden
         className="alps-wordmark-frost pointer-events-none absolute left-0 top-0 z-10 select-none whitespace-nowrap font-display font-light leading-[0.92]"
         style={{ fontSize: "clamp(3.5rem, 13vw, 10rem)", width: "max-content" }}
       >
         The Alps
-      </h1>
+      </div>
 
       <div aria-hidden className="alps-wordmark-rule mt-6 h-px" style={{ backgroundColor: accent }} />
     </div>

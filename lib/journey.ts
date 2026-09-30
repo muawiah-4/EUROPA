@@ -10,8 +10,30 @@ export type AtmosphereKind =
   | "amber-glow"
   | "aurora";
 
+/**
+ * The single source of truth for which destinations exist. Everything else
+ * keyed by destination — DESTINATIONS below, lib/europeGeo.ts's route order
+ * and stay durations, the detail page's kinetic wordmark table — is typed
+ * against `DestinationId`, so a typo or a missing entry fails type-checking
+ * instead of surfacing as an `undefined` lookup at runtime.
+ */
+export const DESTINATION_IDS = [
+  "paris",
+  "rome",
+  "santorini",
+  "venice",
+  "alps",
+  "london",
+  "barcelona",
+  "amsterdam",
+  "prague",
+  "iceland",
+] as const;
+
+export type DestinationId = (typeof DESTINATION_IDS)[number];
+
 export type Destination = {
-  id: string;
+  id: DestinationId;
   index: number; // 1-based, for the progress rail
   country: string;
   city: string;
@@ -434,7 +456,7 @@ export const DESTINATIONS: Destination[] = [
     history:
       "Spared the leveling that reshaped so many European capitals after the wars, Prague kept its medieval street plan and skyline largely intact, layer laid on layer since the 14th century.",
     culture:
-      "The astronomical clock on Old Town Hall has marked the hour the same way since 1410 — a small mechanical ritual the city still gathers to watch.",
+      "The Orloj, the astronomical clock on Old Town Hall, has kept time since 1410 — repaired and added to over six centuries, and still a small mechanical ritual the city gathers to watch on the hour.",
     highlights: [
       "A 600-year-old astronomical clock that still keeps time",
       "Copper domes and spires oxidized to a permanent green",
@@ -466,6 +488,13 @@ export const DESTINATIONS: Destination[] = [
     atmosphere: "aurora",
     sky: ["#0a1410", "#050706"],
     accent: "#4fd1a5",
+    // Deliberately the country's geographic centre, not Reykjavík (~64.1466,
+    // -21.9426): unlike every other stop, this one is presented as the whole
+    // country's landscape (city "Iceland", LOCATION "ICELAND", gallery spread
+    // from Reynisfjara to Seyðisfjörður). Consequence: the specimen stamp,
+    // map pins and Grand Tour leg distances measure to the island's centre,
+    // not an arrival city. Both points sit inside europeGeo.ts's projection
+    // bounds (lat 34–67, lon -25–33).
     coordinates: { lat: 64.9631, lon: -19.0208 },
     pace: "slow",
     tagline: "Where the ground still decides what to become.",
@@ -518,8 +547,24 @@ export function destinationForProgress(p: number): Destination | null {
   return DESTINATIONS.find((d) => p >= d.range[0] && p < d.range[1]) ?? null;
 }
 
+const DESTINATIONS_BY_ID = new Map<string, Destination>(DESTINATIONS.map((d) => [d.id, d]));
+
+// `id: DestinationId` above stops DESTINATIONS from containing an unknown
+// id; this catches the one direction the type system can't — an id listed
+// in DESTINATION_IDS with no matching entry — at module load (i.e. during
+// `next build`'s static generation), not deep inside a component.
+for (const id of DESTINATION_IDS) {
+  if (!DESTINATIONS_BY_ID.has(id)) throw new Error(`lib/journey.ts: no DESTINATIONS entry for "${id}"`);
+}
+
+/** Lookup for untrusted strings (route params) — may miss. */
 export function getDestinationById(id: string): Destination | undefined {
-  return DESTINATIONS.find((d) => d.id === id);
+  return DESTINATIONS_BY_ID.get(id);
+}
+
+/** Lookup for a known `DestinationId` — always present (checked at module load above). */
+export function getDestination(id: DestinationId): Destination {
+  return DESTINATIONS_BY_ID.get(id) as Destination;
 }
 
 /**

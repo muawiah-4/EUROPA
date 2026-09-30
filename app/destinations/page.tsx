@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { DESTINATIONS } from "@/lib/journey";
+import { pageMetadata } from "@/lib/site";
 import SiteFooter from "@/components/SiteFooter";
 import GhostHeading from "@/components/GhostHeading";
 import IconsOfEurope from "@/components/IconsOfEurope";
 import DestinationsCarousel from "@/components/DestinationsCarousel";
 import MapWatermark from "@/components/MapWatermark";
 
-export const metadata: Metadata = {
-  title: "All Destinations — EUROPA",
-  description: "Every stop on the journey — ten cities across Europe, gathered in one place.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "All Destinations",
+  description:
+    "Every stop on the journey — ten places across Europe, from Paris and Rome to Prague and Iceland, gathered in one place.",
+  path: "/destinations",
+});
 
 export default function DestinationsPage() {
   const ordered = [...DESTINATIONS].sort((a, b) => a.index - b.index);
@@ -32,7 +35,7 @@ export default function DestinationsPage() {
           <div className="absolute top-64 right-[30%] h-[300px] w-[300px] rounded-full blur-[130px]" style={{ background: "#c3c7ce", opacity: 0.08 }} />
           <div className="absolute top-10 left-[60%] h-[260px] w-[260px] rounded-full blur-[130px]" style={{ background: "#f8f8f9", opacity: 0.06 }} />
         </div>
-        <GhostHeading align="right" className="top-2 opacity-70 md:top-6">
+        <GhostHeading align="right" strokeColor="rgb(var(--bone) / 0.08)" className="top-2 opacity-70 md:top-6">
           EUROPE
         </GhostHeading>
         <div className="relative mx-auto max-w-3xl">
@@ -54,7 +57,7 @@ export default function DestinationsPage() {
 
       {/* Icons of Europe — one defining landmark per destination */}
       <section className="relative border-t border-white/[0.06] bg-panel px-6 py-20 md:px-10 md:py-28">
-        <GhostHeading align="left" className="top-4 opacity-60 md:top-8">
+        <GhostHeading align="left" strokeColor="rgb(var(--bone) / 0.08)" className="top-4 opacity-60 md:top-8">
           ICONS
         </GhostHeading>
         <div className="relative mx-auto max-w-3xl text-center">

@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useRef } from "react";
-import { useScroll, useSpring } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
+import { useMotionValueEvent, useScroll, useSpring, type MotionValue } from "framer-motion";
 import { DESTINATIONS, JOURNEY_LENGTH_VH, JOURNEY_MARKS } from "@/lib/journey";
+import { track } from "@/lib/analytics";
 import {
   StoryChapterBackground,
   StoryChapterForeground,
@@ -51,6 +52,16 @@ export default function JourneyExperience() {
     window.scrollTo({ top: target, behavior: "smooth" });
   }, []);
 
+  // Report each destination chapter once per page view as the scroll reaches
+  // it. Reads the raw scroll (not the spring) so it reflects where the user is.
+  const reachedChaptersRef = useRef(new Set<number>());
+  useMotionValueEvent(rawProgress, "change", (p) => {
+    const idx = chapterIndexForProgress(p);
+    if (idx < 0 || reachedChaptersRef.current.has(idx)) return;
+    reachedChaptersRef.current.add(idx);
+    track("journey_chapter_reached", { destination: DESTINATIONS[idx].id, chapter: idx + 1 });
+  });
+
   const restart = useCallback(() => scrollToFraction(0), [scrollToFraction]);
 
   return (
@@ -69,8 +80,8 @@ export default function JourneyExperience() {
         */}
         <JourneyGradientStage progress={scrollYProgress} />
 
-        {DESTINATIONS.map((d) => (
-          <ChapterBackgroundLayer key={d.id} destination={d} progress={scrollYProgress} />
+        {DESTINATIONS.map((d, i) => (
+          <ChapterBackgroundLayer key={d.id} destination={d} index={i} progress={scrollYProgress} />
         ))}
 
         {DESTINATIONS.map((d) => (
@@ -86,18 +97,54 @@ export default function JourneyExperience() {
   );
 }
 
+// Index of the chapter the scroll position is in: -1 before the first
+// chapter starts (hero/descent), last index once past the final one.
+function chapterIndexForProgress(p: number) {
+  let idx = -1;
+  for (let i = 0; i < DESTINATIONS.length; i++) {
+    if (p >= DESTINATIONS[i].range[0]) idx = i;
+  }
+  return idx;
+}
+
+function isNearChapter(p: number, index: number) {
+  return Math.abs(chapterIndexForProgress(p) - index) <= 1;
+}
+
 function ChapterBackgroundLayer({
   destination,
+  index,
   progress,
 }: {
   destination: (typeof DESTINATIONS)[number];
-  progress: ReturnType<typeof useScroll>["scrollYProgress"];
+  index: number;
+  progress: MotionValue<number>;
 }) {
   // Every destination fades in AND out — none of the 8 chapters are the
   // true start/end of the page (the globe hero precedes Paris, the map and
   // outro follow Amsterdam), so this always uses the full crossfade curve.
   const opacity = useChapterOpacity(progress, destination.range, false, false);
-  return <StoryChapterBackground destination={destination} opacity={opacity} />;
+
+  // Particles only animate while this layer is actually visible.
+  const [active, setActive] = useState(() => opacity.get() > 0.001);
+  useMotionValueEvent(opacity, "change", (v) => setActive(v > 0.001));
+
+  // Photos load for the active chapter and its neighbours, and stay loaded
+  // once requested so scrolling back never re-fetches or flashes.
+  const [loadPhoto, setLoadPhoto] = useState(() => isNearChapter(progress.get(), index));
+  useMotionValueEvent(progress, "change", (p) => {
+    if (!loadPhoto && isNearChapter(p, index)) setLoadPhoto(true);
+  });
+
+  return (
+    <StoryChapterBackground
+      destination={destination}
+      opacity={opacity}
+      active={active}
+      loadPhoto={loadPhoto}
+      priority={index === 0}
+    />
+  );
 }
 
 function ChapterForegroundLayer({

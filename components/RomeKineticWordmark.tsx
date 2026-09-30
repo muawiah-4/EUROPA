@@ -101,13 +101,13 @@ export default function RomeKineticWordmark({ accent }: { accent: string }) {
       >
         Rome
       </h1>
-      <h1
+      <div
         aria-hidden
         className="rome-wordmark-overlay pointer-events-none absolute left-0 top-0 z-10 select-none whitespace-nowrap font-display font-light leading-[0.92] text-bone"
         style={{ fontSize: "clamp(3.5rem, 13vw, 10rem)", width: "max-content" }}
       >
         Rome
-      </h1>
+      </div>
 
       <div aria-hidden className="rome-wordmark-rule mt-6 h-px" style={{ backgroundColor: accent }} />
     </div>

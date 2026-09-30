@@ -3,10 +3,10 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { DESTINATIONS, haversineKm } from "@/lib/journey";
+import { DESTINATIONS, getDestination, haversineKm } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, estimateTravelTime, projectLatLon } from "@/lib/europeGeo";
 
-const ROUTE = JOURNEY_ROUTE_ORDER.map((id) => DESTINATIONS.find((d) => d.id === id)!).filter(Boolean);
+const ROUTE = JOURNEY_ROUTE_ORDER.map(getDestination);
 
 // Real bounding box this projection covers (see lib/europeGeo.ts) — shown
 // verbatim in the plate stamp so the "real coordinates" claim is checkable,
@@ -18,6 +18,21 @@ const BOUNDS_LABEL = "34°–67°N · 25°W–33°E";
 // without the scattered-dot "star field" look this replaced.
 const GRATICULE_X = [0.2, 0.4, 0.6, 0.8];
 const GRATICULE_Y = [0.25, 0.5, 0.75];
+
+// One-accent rule: all ten cities share this map at once, so markers and
+// route legs stay neutral at rest and only the hovered/focused one turns
+// mint — per-destination accents are reserved for a destination's own page.
+// Resting labels sit at mist/65 (~5.2:1 on the plate) rather than an
+// accent at 55% opacity (which fell to ~2–3:1 for the darker accents).
+// Literal channels (= --mist / --mint in app/globals.css) rather than
+// var(): SVG presentation attributes and Framer Motion's colour
+// interpolation both need a concrete colour.
+const MARKER_REST = "rgb(195, 199, 206)";
+const MARKER_GLOW = "rgba(195, 199, 206, 0.45)";
+const MARKER_ACTIVE = "rgb(59, 186, 156)";
+const LABEL_REST = "rgba(195, 199, 206, 0.65)";
+const ROUTE_REST = "rgba(195, 199, 206, 0.7)";
+const ROUTE_ACTIVE = "rgb(59, 186, 156)";
 
 function CornerBracket({ corner }: { corner: "tl" | "tr" | "bl" | "br" }) {
   const isTop = corner === "tl" || corner === "tr";
@@ -115,29 +130,15 @@ export default function DestinationsMap() {
           <filter id={`${gradientIdBase}-glow`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="0.55" />
           </filter>
-          {segments.map((s, i) => (
-            <linearGradient
-              key={i}
-              id={`${gradientIdBase}-route-${i}`}
-              gradientUnits="userSpaceOnUse"
-              x1={s.a.x}
-              y1={s.a.y}
-              x2={s.b.x}
-              y2={s.b.y}
-            >
-              <stop offset="0%" stopColor={s.from.accent} />
-              <stop offset="100%" stopColor={s.to.accent} />
-            </linearGradient>
-          ))}
         </defs>
 
         {/* Graticule — faint spatial reference, not a landmass trace */}
         <g opacity={0.07}>
           {GRATICULE_X.map((f) => (
-            <line key={`x${f}`} x1={MAP_WIDTH * f} y1={0} x2={MAP_WIDTH * f} y2={MAP_HEIGHT} stroke="#cdc9bf" strokeWidth={0.04} />
+            <line key={`x${f}`} x1={MAP_WIDTH * f} y1={0} x2={MAP_WIDTH * f} y2={MAP_HEIGHT} stroke="#c3c7ce" strokeWidth={0.04} />
           ))}
           {GRATICULE_Y.map((f) => (
-            <line key={`y${f}`} x1={0} y1={MAP_HEIGHT * f} x2={MAP_WIDTH} y2={MAP_HEIGHT * f} stroke="#cdc9bf" strokeWidth={0.04} />
+            <line key={`y${f}`} x1={0} y1={MAP_HEIGHT * f} x2={MAP_WIDTH} y2={MAP_HEIGHT * f} stroke="#c3c7ce" strokeWidth={0.04} />
           ))}
         </g>
 
@@ -151,22 +152,22 @@ export default function DestinationsMap() {
               <path
                 d={path}
                 fill="none"
-                stroke={`url(#${gradientIdBase}-route-${i})`}
+                stroke={isHovered ? ROUTE_ACTIVE : ROUTE_REST}
                 strokeWidth={isHovered ? 0.5 : 0.32}
                 opacity={isHovered ? 0.55 : 0.28}
                 filter={`url(#${gradientIdBase}-glow)`}
-                style={{ transition: "stroke-width 200ms ease-out, opacity 200ms ease-out" }}
+                style={{ transition: "stroke 200ms ease-out, stroke-width 200ms ease-out, opacity 200ms ease-out" }}
               />
               {/* Crisp line on top, dash style itself encodes the mode */}
               <path
                 d={path}
                 fill="none"
-                stroke={`url(#${gradientIdBase}-route-${i})`}
+                stroke={isHovered ? ROUTE_ACTIVE : ROUTE_REST}
                 strokeWidth={0.075}
                 strokeDasharray={dash}
                 strokeLinecap="round"
                 opacity={isHovered ? 1 : 0.75}
-                style={{ transition: "opacity 200ms ease-out" }}
+                style={{ transition: "stroke 200ms ease-out, opacity 200ms ease-out" }}
               />
               {/* Generous invisible hit-area along the curve for the hover tooltip */}
               <path
@@ -193,7 +194,7 @@ export default function DestinationsMap() {
               left: `${pos.x}%`,
               top: `${pos.y}%`,
               opacity: hoveredSegment === i ? 1 : 0,
-              borderColor: "rgba(242,239,233,0.16)",
+              borderColor: "rgb(var(--bone) / 0.16)",
             }}
           >
             {s.km.toLocaleString()} km · ~{s.hours.toFixed(1)} hrs · {s.mode}
@@ -224,24 +225,24 @@ export default function DestinationsMap() {
           >
             <motion.span
               className="block rounded-full"
-              initial={{ width: 7, height: 7 }}
+              initial={{ width: 7, height: 7, backgroundColor: MARKER_REST }}
               animate={{
                 width: isActive ? 13 : 7,
                 height: isActive ? 13 : 7,
+                backgroundColor: isActive ? MARKER_ACTIVE : MARKER_REST,
                 boxShadow: isActive
-                  ? `0 0 22px ${d.accent}`
-                  : [`0 0 6px ${d.accent}`, `0 0 13px ${d.accent}`, `0 0 6px ${d.accent}`],
+                  ? `0 0 22px ${MARKER_ACTIVE}`
+                  : [`0 0 6px ${MARKER_GLOW}`, `0 0 13px ${MARKER_GLOW}`, `0 0 6px ${MARKER_GLOW}`],
               }}
               transition={
-                isActive ? { duration: 0.25 } : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }
+                isActive ? { duration: 0.25 } : { duration: 3.4, repeat: Infinity, ease: "easeInOut", backgroundColor: { duration: 0.3 } }
               }
-              style={{ background: d.accent }}
             />
 
             {/* Resting label — always-on city name, dims when the full card takes over */}
             <span
               className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.16em] transition-opacity duration-300"
-              style={{ color: d.accent, opacity: isActive ? 0 : 0.55 }}
+              style={{ color: LABEL_REST, opacity: isActive ? 0 : 1 }}
             >
               {d.city}
             </span>
@@ -254,9 +255,11 @@ export default function DestinationsMap() {
               } ${nearTop ? "top-full mt-5" : "bottom-full mb-5"} ${
                 nearLeft ? "left-0" : nearRight ? "right-0" : "left-1/2 -translate-x-1/2"
               }`}
-              style={{ borderColor: "rgba(242,239,233,0.14)" }}
+              style={{ borderColor: "rgb(var(--mint) / 0.45)" }}
             >
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: d.accent }}>
+              {/* Mint lives on the card's edge, not the 10px label: mint on
+                  elevated is only ~4.4:1, mist is ~6.3:1. */}
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mist">
                 {d.country}
               </div>
               <div className="mt-1 font-display text-lg font-light leading-tight text-bone">{d.city}</div>

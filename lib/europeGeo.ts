@@ -8,6 +8,8 @@
  * — so the flat map and the globe agree on what Europe looks like.
  */
 
+import type { DestinationId } from "@/lib/journey";
+
 // Europe's very rough lat/long bounding shape, sampled as a loose point
 // cloud rather than a traced coastline — enough to read as "a continent"
 // without importing real geo/GeoJSON data. Shared with GlobeHero's 3D
@@ -56,7 +58,7 @@ export function projectLatLon(lat: number, lon: number): { x: number; y: number 
 // pacing and mood, not physical geography. Iceland stays the closing
 // flight, same as the main journey's own framing of it as "the edge of
 // the map."
-export const JOURNEY_ROUTE_ORDER = [
+export const JOURNEY_ROUTE_ORDER: readonly DestinationId[] = [
   "london",
   "paris",
   "amsterdam",
@@ -67,18 +69,18 @@ export const JOURNEY_ROUTE_ORDER = [
   "santorini",
   "barcelona",
   "iceland",
-] as const;
+];
 
 // Recommended dwell, in days — an editorial judgment call loosely following
 // each destination's own `pace` field (slow/medium/brisk maps to roughly
 // 3/2/2 days), not a scraped average.
-export const STAY_DURATIONS: Record<(typeof JOURNEY_ROUTE_ORDER)[number], number> = {
+export const STAY_DURATIONS: Record<DestinationId, number> = {
   london: 2,
   paris: 3,
   amsterdam: 2,
   prague: 2,
   alps: 3,
-  venice: 2,
+  venice: 3,
   rome: 3,
   santorini: 2,
   barcelona: 2,
@@ -90,21 +92,46 @@ export type TravelEstimate = { hours: number; mode: TravelMode };
 
 // Not a routing API — an editorial judgment call on how long each leg
 // plausibly takes door-to-door, the same spirit as STAY_DURATIONS above.
-// Under ~600km (this journey's own legs split cleanly around there, from
-// 344km up to 2,945km) is treated as a train/car hop at a realistic
-// average of 90km/h — well under highway top speed once stations, transfers
-// and border crossings are counted. Past that, it's a flight: a 750km/h
-// cruise plus a flat 2.5-hour overhead on *each* end (check-in, security,
-// boarding, deplaning, baggage) — which is why even a relatively short
-// "as the crow flies" hop still costs a half-day once you're flying it.
-const TRAIN_FLIGHT_THRESHOLD_KM = 600;
+// Both options are costed for every leg and the faster one wins: a
+// train/car hop at a realistic average of 90km/h (well under highway top
+// speed once stations, transfers and border crossings are counted), or a
+// flight at a 750km/h cruise plus a flat 2.5-hour overhead on *each* end
+// (check-in, security, boarding, deplaning, baggage) — which is why even a
+// relatively short "as the crow flies" hop still costs a half-day once
+// you're flying it. Picking the minimum (rather than a fixed distance
+// cutoff) keeps the estimate monotonic: a longer leg never shows a shorter
+// time than a shorter one. The two break even at roughly 510km.
 const TRAIN_SPEED_KMH = 90;
 const FLIGHT_CRUISE_KMH = 750;
 const FLIGHT_OVERHEAD_HOURS_PER_END = 2.5;
 
 export function estimateTravelTime(km: number): TravelEstimate {
-  if (km <= TRAIN_FLIGHT_THRESHOLD_KM) {
-    return { hours: km / TRAIN_SPEED_KMH, mode: "train" };
-  }
-  return { hours: km / FLIGHT_CRUISE_KMH + FLIGHT_OVERHEAD_HOURS_PER_END * 2, mode: "flight" };
+  const trainHours = km / TRAIN_SPEED_KMH;
+  const flightHours = km / FLIGHT_CRUISE_KMH + FLIGHT_OVERHEAD_HOURS_PER_END * 2;
+  return trainHours <= flightHours
+    ? { hours: trainHours, mode: "train" }
+    : { hours: flightHours, mode: "flight" };
+}
+
+/**
+ * A destination's neighbours along JOURNEY_ROUTE_ORDER, for the detail
+ * page's cross-links. `next` is the "Next stop" on the Grand Tour leg card
+ * and is null at the final stop ("Journey's end"); `nextWrapped` is the foot
+ * of page "Next destination" link, which wraps from the last stop back to
+ * the first. For every stop but the last the two are the same id.
+ */
+export function routeNeighbours(id: DestinationId): {
+  routeIndex: number;
+  prev: DestinationId | null;
+  next: DestinationId | null;
+  nextWrapped: DestinationId;
+} {
+  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(id);
+  const last = JOURNEY_ROUTE_ORDER.length - 1;
+  return {
+    routeIndex,
+    prev: routeIndex > 0 ? JOURNEY_ROUTE_ORDER[routeIndex - 1] : null,
+    next: routeIndex >= 0 && routeIndex < last ? JOURNEY_ROUTE_ORDER[routeIndex + 1] : null,
+    nextWrapped: JOURNEY_ROUTE_ORDER[(routeIndex + 1) % JOURNEY_ROUTE_ORDER.length],
+  };
 }

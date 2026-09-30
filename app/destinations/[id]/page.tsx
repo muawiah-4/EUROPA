@@ -2,8 +2,17 @@ import type { ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { DESTINATIONS, getDestinationById, haversineKm } from "@/lib/journey";
-import { JOURNEY_ROUTE_ORDER, estimateTravelTime } from "@/lib/europeGeo";
+import {
+  DESTINATIONS,
+  getDestination,
+  getDestinationById,
+  haversineKm,
+  type Destination,
+  type DestinationId,
+} from "@/lib/journey";
+import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, pageMetadata } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
+import { JOURNEY_ROUTE_ORDER, estimateTravelTime, routeNeighbours } from "@/lib/europeGeo";
 import AtmosphereParticles from "@/components/AtmosphereParticles";
 import SiteFooter from "@/components/SiteFooter";
 import DestinationGradientBackdrop from "@/components/DestinationGradientBackdrop";
@@ -24,7 +33,7 @@ import IcelandKineticWordmark from "@/components/IcelandKineticWordmark";
 // One kinetic wordmark per destination — each a genuinely different
 // mechanism (see the individual component files), never a 3D object or a
 // drawing of a landmark. Looked up by id rather than a long if/else chain.
-const KINETIC_WORDMARKS: Record<string, ComponentType<{ accent: string }>> = {
+const KINETIC_WORDMARKS: Record<DestinationId, ComponentType<{ accent: string }>> = {
   paris: ParisKineticWordmark,
   rome: RomeKineticWordmark,
   santorini: SantoriniKineticWordmark,
@@ -41,40 +50,95 @@ export function generateStaticParams() {
   return DESTINATIONS.map((d) => ({ id: d.id }));
 }
 
-export function generateMetadata({ params }: { params: { id: string } }): Metadata {
-  const destination = getDestinationById(params.id);
-  if (!destination) return {};
-  return {
-    title: `${destination.city} — Europe`,
-    description: destination.overview,
-  };
+const titleCase = (s: string) => s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
+/** "Rome, Italy" — or just "Iceland" where the stop is the whole country. */
+function placeName(destination: Destination): string {
+  const country = titleCase(destination.country);
+  return destination.city.toLowerCase() === country.toLowerCase() ? destination.city : `${destination.city}, ${country}`;
 }
 
-export default function DestinationPage({ params }: { params: { id: string } }) {
-  const destination = getDestinationById(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const destination = getDestinationById(id);
+  // Unknown ids render notFound(): keep them out of the index, no canonical.
+  if (!destination) return { robots: { index: false, follow: false } };
+
+  // Paris also has the long-form /paris deep-dive; this page is explicitly
+  // the overview so the two don't compete for the same query.
+  const title = destination.deepDiveHref
+    ? `${placeName(destination)} — Destination Overview`
+    : `${placeName(destination)} — Destination Guide`;
+
+  return pageMetadata({
+    title,
+    description: `${destination.tagline} ${destination.overview}`,
+    path: `/destinations/${destination.id}`,
+    image: destination.photoSrc,
+    imageAlt: `${destination.city}, ${titleCase(destination.country)}`,
+    ogType: "article",
+  });
+}
+
+export default async function DestinationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const destination = getDestinationById(id);
   if (!destination) notFound();
 
-  const currentIndex = DESTINATIONS.findIndex((d) => d.id === destination.id);
-  const next = DESTINATIONS[(currentIndex + 1) % DESTINATIONS.length];
   const KineticWordmark = KINETIC_WORDMARKS[destination.id];
 
   // This destination's real place on the Grand Tour route (lib/europeGeo.ts's
-  // geographic travel order), not the site's narrative chapter order above —
-  // replaces the old standalone map section with concrete route data instead.
-  const routeIndex = JOURNEY_ROUTE_ORDER.indexOf(destination.id as (typeof JOURNEY_ROUTE_ORDER)[number]);
-  const prevStop = routeIndex > 0 ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex - 1]) : null;
-  const nextStop =
-    routeIndex >= 0 && routeIndex < JOURNEY_ROUTE_ORDER.length - 1
-      ? getDestinationById(JOURNEY_ROUTE_ORDER[routeIndex + 1])
-      : null;
+  // geographic travel order) — replaces the old standalone map section with
+  // concrete route data instead. The "Next destination" cross-link at the
+  // foot of the page follows the same order (wrapping from the last stop
+  // back to the first), so the page's two "next" links never disagree.
+  const route = routeNeighbours(destination.id);
+  const routeIndex = route.routeIndex;
+  const next = getDestination(route.nextWrapped);
+  const prevStop = route.prev ? getDestination(route.prev) : null;
+  const nextStop = route.next ? getDestination(route.next) : null;
   const legFrom = (other: typeof destination) => {
     const km = Math.round(haversineKm(destination.coordinates, other.coordinates));
     const { hours, mode } = estimateTravelTime(km);
     return { km, hours, mode };
   };
 
+  const pageUrl = absoluteUrl(`/destinations/${destination.id}`);
+  const images = [destination.photoSrc ?? DEFAULT_OG_IMAGE, ...(destination.galleryPhotos ?? []).map((p) => p.src)].map(
+    (src) => absoluteUrl(src)
+  );
+
   return (
     <main className="bg-void">
+      {/* Descriptive only — no offers, prices or bookable claims. */}
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "TouristDestination",
+            "@id": `${pageUrl}#destination`,
+            name: destination.city,
+            description: destination.overview,
+            url: pageUrl,
+            image: images,
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: destination.coordinates.lat,
+              longitude: destination.coordinates.lon,
+            },
+            containedInPlace: { "@type": "Country", name: titleCase(destination.country) },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: SITE_NAME, item: absoluteUrl("/") },
+              { "@type": "ListItem", position: 2, name: "Destinations", item: absoluteUrl("/destinations") },
+              { "@type": "ListItem", position: 3, name: destination.city, item: pageUrl },
+            ],
+          },
+        ]}
+      />
       {/* Entrance-fade keyframes, scoped to this page only */}
       <style>{`
         @keyframes destHeroFade {
@@ -147,7 +211,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
           />
         </div>
         <div className="mx-auto max-w-3xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</div>
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Overview</h2>
           <p className="mt-6 text-balance font-display text-[22px] font-light leading-[1.5] text-bone md:text-[28px]">
             {destination.overview}
           </p>
@@ -164,13 +228,13 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-14 px-6 py-20 md:grid-cols-2 md:gap-16 md:px-10 md:py-28">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">History</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">History</h2>
             <p className="mt-5 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[16px]">
               {destination.history}
             </p>
           </div>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Culture</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Culture</h2>
             <p className="mt-5 max-w-md text-[15px] font-light leading-relaxed text-mist md:text-[16px]">
               {destination.culture}
             </p>
@@ -182,7 +246,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {destination.galleryPhotos && destination.galleryPhotos.length > 0 && (
         <section className="border-t border-white/[0.06] bg-panel px-6 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-5xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">In frame</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">In frame</h2>
             <div className="mt-8">
               <DestinationPhotoGallery photos={destination.galleryPhotos} accent={destination.accent} />
             </div>
@@ -194,9 +258,9 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {(prevStop || nextStop) && (
         <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-5xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">
               On the Grand Tour — stop {String(routeIndex + 1).padStart(2, "0")} of {JOURNEY_ROUTE_ORDER.length}
-            </div>
+            </h2>
             <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
               {prevStop && (
                 <Link
@@ -259,11 +323,11 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
         </div>
         <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-20 md:flex-row md:justify-between md:px-10 md:py-28">
           <div className="max-w-md">
-            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Travel tip</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Travel tip</h2>
             <p className="mt-3 text-[15px] font-light leading-relaxed text-mist md:text-[16px]">{destination.travelTip}</p>
           </div>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Best season</div>
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.24em] text-smoke">Best season</h2>
             <div className="mt-3 font-mono text-[13px] uppercase tracking-[0.18em] text-mist">{destination.bestSeason}</div>
           </div>
         </div>
@@ -272,7 +336,7 @@ export default function DestinationPage({ params }: { params: { id: string } }) 
       {/* ---------- Cross-navigation ---------- */}
       <section className="border-t border-white/[0.06] px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Next destination</div>
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-smoke">Next destination</h2>
           <Link href={`/destinations/${next.id}`} className="group mt-5 inline-flex items-baseline gap-4">
             <span
               className="text-balance font-display font-light leading-[0.95] tracking-[-0.03em] text-bone transition-colors group-hover:text-mist"

@@ -3,6 +3,12 @@
 // Ambient animated WebGL color-wash background (Stripe-style mesh gradient).
 // Ported as a self-contained component — no external deps beyond React —
 // and integrated as the homepage hero's backdrop, behind the globe.
+//
+// Attribution: the MiniGl renderer, shaders and gradient logic below are
+// adapted from the animated WebGL gradient ("minigl") shipped on stripe.com,
+// by way of Kevin Hufnagl's widely shared standalone port of it. The
+// original code is © Stripe, Inc.; no licence for it is stated in this repo,
+// so treat this file as third-party-derived, not original work.
 
 import { useEffect, useRef } from "react";
 
@@ -364,7 +370,7 @@ export class Gradient {
   isPlaying = false;
 
   // prefers-reduced-motion support — same matchMedia + change-listener idiom
-  // as GlobeHero/FloatingLandmark (components/three/*.tsx). Read on
+  // as GlobeHero (components/three/GlobeHero.tsx). Read on
   // construction and kept live via the change listener so an in-session OS
   // preference flip is honored immediately.
   reducedMotion = false;
@@ -590,24 +596,41 @@ void main() {
   };
 
   start(): void {
+    // Idempotent: a second start() while already playing would otherwise
+    // queue a parallel rAF chain and double the per-frame cost.
+    if (this.isPlaying) return;
     this.isPlaying = true;
+    this.last = performance.now();
     this.animationId = requestAnimationFrame(this.animate);
   }
 
-  stop(): void {
+  // Halts the render loop but keeps the GL context, program and listeners
+  // alive so start() can resume instantly — used by callers that hide the
+  // canvas (opacity 0 / offscreen) rather than tearing it down.
+  pause(): void {
     this.isPlaying = false;
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
+      this.animationId = undefined;
     }
+  }
+
+  // Full teardown — the instance is unusable afterwards.
+  stop(): void {
+    this.pause();
     // Undo everything init()/the constructor wired up to window — without
     // this, every Gradient this process tears down (GradientWave recreates
-    // one on every colors/isPlaying/shadowPower/darkenTop/noiseSpeed/
+    // one on every colors/shadowPower/darkenTop/noiseSpeed/
     // noiseFrequency/deform prop change, per its effect dependency array)
     // leaves a resize listener and a reduced-motion listener permanently
     // attached to window, each closing over a now-detached canvas/GL
     // context/Gradient instance that can then never be garbage collected.
     window.removeEventListener("resize", this.handleResize);
     this.reducedMotionQuery?.removeEventListener("change", this.handleReducedMotionChange);
+    // Browsers cap live WebGL contexts (~16) and only reclaim a detached
+    // canvas's context on GC, so every rebuilt Gradient leaked one until
+    // then. Release it explicitly.
+    this.minigl.gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
 
   // Mutates the existing uniform values in place instead of rebuilding the
@@ -656,6 +679,15 @@ export function GradientWave({
 }: GradientWaveProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<Gradient | null>(null);
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+
+  // Array/object props are compared by value, not identity — callers that
+  // pass inline literals would otherwise tear down and rebuild the whole
+  // WebGL canvas on every parent re-render.
+  const colorsKey = colors.join(",");
+  const noiseFrequencyKey = noiseFrequency.join(",");
+  const deformKey = JSON.stringify(deform);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -686,19 +718,29 @@ export function GradientWave({
         ...deform,
       });
 
-      if (isPlaying) gradient.start();
+      if (isPlayingRef.current) gradient.start();
     } catch (error) {
       console.error("Failed to initialize gradient:", error);
     }
 
+    const container = containerRef.current;
     return () => {
-      gradientRef.current?.stop();
-      if (containerRef.current?.contains(canvas)) {
-        containerRef.current.removeChild(canvas);
+      gradient?.stop();
+      if (gradientRef.current === gradient) gradientRef.current = null;
+      if (container.contains(canvas)) {
+        container.removeChild(canvas);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colors, isPlaying, shadowPower, darkenTop, noiseSpeed, noiseFrequency, deform]);
+  }, [colorsKey, shadowPower, darkenTop, noiseSpeed, noiseFrequencyKey, deformKey]);
+
+  // Play/pause toggles the existing loop instead of rebuilding the canvas.
+  useEffect(() => {
+    const gradient = gradientRef.current;
+    if (!gradient) return;
+    if (isPlaying) gradient.start();
+    else gradient.pause();
+  }, [isPlaying]);
 
   return <div ref={containerRef} className={`absolute inset-0 z-0 w-full h-full overflow-hidden ${className}`} />;
 }

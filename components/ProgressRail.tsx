@@ -94,7 +94,7 @@ export default function ProgressRail({
               >
                 <span
                   className="font-mono text-[10px] tracking-[0.12em] transition-colors"
-                  style={{ color: isActive ? d.accent : "rgba(184,182,174,0.35)" }}
+                  style={{ color: isActive ? d.accent : "rgb(var(--mist) / 0.65)" }}
                 >
                   {String(d.index).padStart(2, "0")} — {d.city.toUpperCase()}
                 </span>
@@ -102,7 +102,7 @@ export default function ProgressRail({
                   className="h-[3px] rounded-full transition-all duration-300"
                   style={{
                     width: isActive ? `${16 + activeChapterProgress * 14}px` : "8px",
-                    background: isActive ? d.accent : "rgba(184,182,174,0.3)",
+                    background: isActive ? d.accent : "rgb(var(--mist) / 0.3)",
                   }}
                 />
               </button>
@@ -131,7 +131,7 @@ export default function ProgressRail({
       >
         <span
           className="font-mono text-[10px] uppercase tracking-[0.2em] transition-colors duration-300"
-          style={{ color: activeIdx >= 0 ? DESTINATIONS[activeIdx].accent : "rgba(184,182,174,0.5)" }}
+          style={{ color: activeIdx >= 0 ? DESTINATIONS[activeIdx].accent : "rgb(var(--mist) / 0.65)" }}
         >
           {activeIdx >= 0
             ? `${String(DESTINATIONS[activeIdx].index).padStart(2, "0")} — ${DESTINATIONS[activeIdx].city.toUpperCase()}`
@@ -152,7 +152,7 @@ export default function ProgressRail({
                 style={{
                   width: i === activeIdx ? 14 : 5,
                   height: 5,
-                  background: i === activeIdx ? d.accent : "rgba(184,182,174,0.35)",
+                  background: i === activeIdx ? d.accent : "rgb(var(--mist) / 0.35)",
                 }}
               />
             </button>

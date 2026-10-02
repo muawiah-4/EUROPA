@@ -36,8 +36,9 @@ const ROUTE_REST = "rgba(195, 199, 206, 0.7)";
 // scroll window (roughly 22vh at this project's scroll length) that opens
 // inside the last moments of Amsterdam's dwell. Its fade-out runs a few
 // vh past JOURNEY_MARKS.outroStart, briefly overlapping EndSequence's own
-// fade-in — harmless, since EndSequence renders after it (same z-index)
-// and its bg-void steadily covers the map as it comes in.
+// fade-in. EndSequence renders after it (same z-index) and its bg-void
+// steadily covers the map as it comes in; it only starts taking pointer
+// events once it's half opaque, so the map stays clickable while visible.
 const FADE_IN_END = JOURNEY_MARKS.mapStart + 0.008;
 const HOLD_END = FADE_IN_END + 0.005;
 const FADE_OUT_END = HOLD_END + 0.007;

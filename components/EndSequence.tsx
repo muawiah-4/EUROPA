@@ -27,8 +27,12 @@ export default function EndSequence({
 
   // Same gating as InteractiveMap: while faded out (the whole journey until
   // ~97%), this full-screen layer must not swallow clicks meant for the map
-  // beneath it, nor expose its buttons to Tab / screen readers.
-  const interactive = p > start + 0.001;
+  // beneath it, nor expose its buttons to Tab / screen readers. It only takes
+  // over once it's at least half opaque: the auto-opened map holds at full
+  // opacity until ~97.6% and fades out after, so switching on as soon as
+  // this layer starts fading in left a near-invisible screen over the map's
+  // pins for its whole hold.
+  const interactive = p > start + 0.01;
 
   return (
     <motion.div

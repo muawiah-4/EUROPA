@@ -1,79 +1,187 @@
 # EUROPA — Europe, Beyond the Postcard
 
-A scroll-driven concept travel site exploring ten European destinations — Paris, Rome, Santorini, Venice, The Alps, London, Barcelona, Amsterdam, Prague, and Iceland. It isn't a booking platform or affiliated with any destination shown; it's a design and motion showcase built to see how far mood, restraint, and rhythm can carry a screen. Ten places. One goes deeper: every destination is shown through real photography graded toward its own palette, and Paris alone gets a standalone deep-dive at `/paris`.
+A scroll-driven concept travel site covering ten European destinations:
+Paris, Rome, Santorini, Venice, The Alps, London, Barcelona, Amsterdam,
+Prague and Iceland. It opens on a custom-shaded 3D globe and moves into a
+scroll story with one chapter per destination. Every place is shown through
+real photography graded toward its own palette. Paris alone gets a separate
+deep-dive at `/paris`. Ten places. One goes deeper.
 
-Built with Next.js 15 (App Router) on React 19, TypeScript, Tailwind CSS, Framer Motion, and Three.js (via React Three Fiber 9 + Drei 10) for the opening 3D globe and the `/paris` scene.
+> **Concept project.** This is not a booking platform, and it isn't
+> affiliated with any destination, tourism board or brand shown. It's a
+> design and motion showcase.
+
+![CI](https://github.com/muawiah-4/EUROPA/actions/workflows/ci.yml/badge.svg)
 
 ## Pages
 
-- **`/`** — Home. A custom-shaded WebGL globe with every destination marked at its real coordinates, into a scroll-driven story sequence.
-- **`/destinations`** — All ten destinations: an "Icons of Europe" grid of defining landmarks, and a horizontal swipeable carousel of destination cards.
-- **`/destinations/[id]`** — Per-destination detail page: graded photo hero with the city's kinetic wordmark, real-coordinate route context ("On the Grand Tour"), and a photo gallery.
-- **`/journeys`** — An interactive route builder. Pick any of the ten destinations and a line connects them in real geographic order (not click order), with live-computed distance, travel time, and mode (train vs. flight).
-- **`/experiences`** — The same ten places, sorted by mood instead of geography, plus a season-by-season guide to Europe.
-- **`/about`** — What the site is, how it was built, and which parts are original design work versus real photography.
-- **`/paris`** — "Paris in Motion": the one destination that goes deeper — a standalone scroll through its icons and neighborhoods, built from twelve graded photographs, one level richer than the standard `/destinations/[id]` template.
+| Route | What it is |
+|---|---|
+| `/` | The home page. A WebGL globe with every destination marked at its real coordinates, then a scroll-driven journey through ten chapters with a progress rail, an interactive map and an end sequence. |
+| `/destinations` | All ten destinations: an "Icons of Europe" landmark grid and a swipeable card carousel. |
+| `/destinations/[id]` | A page for each destination: a graded photo hero with the city's moving wordmark, route context ("On the Grand Tour"), a gallery and the next destination. |
+| `/journeys` | A route builder. Pick destinations and a line connects them in geographic order, with live distance, travel time and mode (train or flight). Routes are saved in the URL (`?stops=london,paris`) and can be shared with **Copy link**. |
+| `/experiences` | The same ten places sorted by mood, plus a season-by-season guide. |
+| `/about` | What the site is and how it was built. |
+| `/paris` | "Paris in Motion": a standalone 3D scroll through Paris's icons and neighbourhoods, built from twelve graded photographs. |
 
-## Design system
+## Tech stack
 
-- **Color**: a closed accent economy — three grayscale surface steps (`void` → `panel` → `elevated`), three text tones (`bone`, `mist`, `smoke`), and exactly one accent color (`mint`, `#3bba9c`) used sparingly across the entire site. Defined as CSS variables in `app/globals.css` and wired through `tailwind.config.ts` so Tailwind's `/opacity` modifiers work correctly against them.
-- **Type**: a serif display face (Times New Roman) for headings and body copy, and a monospace face reserved as a distinct "UI voice" for coordinates, labels, and data.
-- **Geography**: destination coordinates, route ordering, and travel-time estimates are computed from real lat/lon data (`lib/europeGeo.ts`), not artistic guesses — the same data drives the flat maps and the Journeys route builder. The 3D globe's markers (`components/three/GlobeHero.tsx`) are a separate, rounded copy of those coordinates, so keep the two in sync by hand.
-- Per-destination accent colors exist only on that destination's own card or page (e.g. Iceland's teal, Rome's amber) — never as a shared, ambient, multi-hue moment elsewhere on the site.
+| | |
+|---|---|
+| Framework | Next.js 15.5 (App Router), React 19, TypeScript |
+| 3D | Three.js 0.169 through React Three Fiber 9 and Drei 10 |
+| Styling | Tailwind CSS 3 with CSS custom-property tokens (`app/globals.css`) |
+| Motion | Framer Motion 11, with `MotionConfig reducedMotion="user"` across the whole site |
+| Tests | Vitest 4: unit tests, node environment |
+| CI | GitHub Actions: typecheck, lint, test and build on every PR |
 
-## Development
+## Getting started
+
+You need Node 22 (see `.nvmrc`).
 
 ```bash
 npm install
-npm run dev      # starts on :3001
-npm run build
-npm start        # serves the production build on :3001
+npm run dev        # http://localhost:3001
 ```
 
-The site runs on port 3001 locally; `lib/site.ts` defaults `SITE_URL` to `http://localhost:3001` (override with `NEXT_PUBLIC_SITE_URL`). Node version is pinned in `.nvmrc` (22).
-
-## Quality checks
+For a production build:
 
 ```bash
-npm run typecheck   # tsc --noEmit
-npm run lint        # next lint (next/core-web-vitals)
-npm test            # vitest run (unit tests in tests/, node env)
-npm run build       # production build
+npm run build
+npm start          # http://localhost:3001
 ```
 
-CI (`.github/workflows/ci.yml`) runs all four on every push and pull request to `main`.
+The default port is **3001**.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Starts the dev server on :3001 |
+| `npm run build` | Builds for production. Every page is generated as static HTML |
+| `npm start` | Serves the production build on :3001 |
+| `npm run typecheck` | Runs `tsc --noEmit` |
+| `npm run lint` | Runs `next lint` on `app/`, `components/`, `lib/` and `tests/` |
+| `npm test` | Runs `vitest run`, the 100 unit tests in `tests/` |
+
+CI (`.github/workflows/ci.yml`) runs typecheck, lint, test and build on every
+push and pull request to `main`.
+
+## Environment variables
+
+All of these are optional. See `.env.example`.
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | The site's public address, used for canonical URLs, Open Graph tags, the sitemap and JSON-LD. Defaults to `http://localhost:3001`. **Set this when you deploy.** |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Turns on Umami analytics. It must be a UUID. While it's unset, analytics is off. |
+| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | The Umami script URL. Defaults to `https://cloud.umami.is/script.js`. |
+
+### Analytics (optional)
+
+Analytics is off by default. With no website ID set, there's no script, no
+CSP change and no network call.
+
+When you turn it on, [Umami](https://umami.is) loads. It uses no cookies and
+respects Do Not Track. Its origin is added to `script-src` and `connect-src`.
+These events are sent, and none of them include free text (see
+`lib/analytics.ts`):
+
+- `journey_chapter_reached`: the destination and chapter, once each per page view
+- `route_stop_added` and `route_stop_removed`
+- `route_copy_link`
+- `plan_route_click`: from the hero or the end sequence
+
+## Design system
+
+- **Colour.** The palette has three grey surface steps (`void` → `panel` →
+  `elevated`) and three text tones (`bone`, `mist`, `smoke`).
+  - The only accent colour is **mint** (`#3bba9c`). It's used for the logo,
+    the hero globe ring, active states and the maps.
+  - A destination's own accent colour appears only when that destination is
+    the only one on screen, such as its own page, its journey chapter or the
+    progress rail's current stop.
+  - All of these are CSS variables, wired through `tailwind.config.ts` so
+    Tailwind's `/opacity` modifiers work with them.
+- **Type.** A serif display face is used for headings and body copy. A
+  monospace face is kept for coordinates, labels and data.
+- **Geography.** Coordinates, route order, distances and travel times come
+  from real latitude and longitude data in `lib/europeGeo.ts` and
+  `lib/journey.ts`.
+  - Travel time is whichever is faster, train or flight.
+  - The globe's markers in `components/three/GlobeHero.tsx` are a separate,
+    rounded copy of the coordinates. If you change one, update the other by
+    hand.
+
+## Performance and robustness
+
+- Background animations only run when they're visible:
+  - Particle canvases pause while their chapter isn't active or is off
+    screen.
+  - The globe stops rendering (`frameloop="never"`) while it's covered.
+  - The gradient canvases pause when they're hidden.
+- Only the current chapter's photos and its neighbours' are loaded.
+- WebGL contexts are released on teardown (`loseContext`).
+- Every 3D canvas sits inside a `WebGLErrorBoundary` with a static fallback,
+  so the site still works without WebGL. `app/error.tsx` and
+  `app/global-error.tsx` catch everything else.
 
 ## Project structure
 
 ```
-app/                 Route segments (App Router)
-components/          Shared UI, per-destination components, and three/ (R3F scenes)
-lib/                 Destination data, geography helpers, journey/travel-time logic
-public/              Destination photography, gallery images, maps
+app/                   Routes, plus not-found, error, global-error, sitemap and robots
+components/            Shared UI and the per-destination wordmarks
+  three/               React Three Fiber scenes (GlobeHero, ParisScene)
+  MagneticButton.tsx   Shared with mock-site; keep both copies in sync
+  GhostHeading.tsx     Shared with mock-site
+  MotionProvider.tsx   Shared with mock-site
+lib/
+  journey.ts           Destination data, DESTINATION_IDS and the DestinationId type
+  europeGeo.ts         Distances, travel time, route neighbours
+  routeStops.ts        Parsing and building the ?stops= value (checked against an allow-list)
+  parisExperience.ts   /paris scene data
+  site.ts              SITE_URL and metadata helpers
+  analytics.ts         Opt-in Umami config and track()
+tests/                 Vitest unit tests
+public/
+  destinations/        Destination photography (JPEG)
+  paris/               /paris photos (WebP for the 3D scene, JPEG for pages and Open Graph)
+  maps/                Map assets
 ```
 
-## Analytics (optional)
+## Quality notes
 
-Off by default: with no env vars set there is no analytics script, no CSP
-change and no network call. To enable [Umami](https://umami.is) (cookieless,
-no personal data), set these at build time (see `.env.example`):
+- **Accessibility**
+  - Text contrast is at least 4.5:1.
+  - Each page has exactly one `<h1>`.
+  - Hidden layers never catch clicks or keyboard focus.
+  - The map moves focus to its first pin when it opens and returns focus to
+    the toggle when it closes. The mobile menu keeps focus inside while
+    open.
+  - Reduced motion is respected.
+- **SEO**
+  - Every page has its own title, description, canonical URL, and Open
+    Graph and Twitter cards.
+  - There's a sitemap, a robots file and a custom 404.
+  - Pages include WebSite, TouristDestination and BreadcrumbList JSON-LD.
+- **Security.** The site sends a strict Content-Security-Policy with no
+  external origins, along with nosniff, Referrer-Policy, Permissions-Policy,
+  X-Frame-Options, HSTS and COOP headers. See [SECURITY.md](SECURITY.md).
+- **Project rules.** [CLAUDE.md](CLAUDE.md) sets out the design system,
+  accessibility, performance and security rules for contributors.
 
-| Env var                        | Default                            |
-| ------------------------------ | ---------------------------------- |
-| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | unset (analytics off); must be a UUID |
-| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | `https://cloud.umami.is/script.js` (https only, or `http://localhost` for self-hosted dev) |
+## Related
 
-When enabled, the script origin is added to `script-src` and `connect-src`
-(plus `https://gateway.umami.is`, where Umami Cloud sends events). The tracker
-respects Do Not Track, and is limited to `NEXT_PUBLIC_SITE_URL`'s hostname
-when that is set. Custom events (no free text; see `lib/analytics.ts`):
-
-- `journey_chapter_reached` — `destination` id, `chapter` number; once each per page view
-- `route_stop_added` / `route_stop_removed` — `destination` id
-- `route_copy_link` — `stops` count, `result` (copied/manual)
-- `plan_route_click` — `source` (hero/end_sequence)
+[TISSOT PRX concept](https://github.com/muawiah-4/mock-site) is a sibling
+project: a scroll-driven product site built on the same stack. It shares its
+motion components with this site.
 
 ## Credits
 
-- Photography sourced from [Unsplash](https://unsplash.com/license) and [Pexels](https://www.pexels.com/license/) under their respective free licences. Individual photographer credits weren't recorded.
-- `components/GradientWave.tsx` is adapted from Stripe's animated WebGL gradient ("minigl", © Stripe, Inc.) via Kevin Hufnagl's standalone port — see the file header.
+- Photography is from [Unsplash](https://unsplash.com/license) and
+  [Pexels](https://www.pexels.com/license/), used under their free licences.
+  Individual photographer credits weren't recorded.
+- `components/GradientWave.tsx` is adapted from Stripe's animated WebGL
+  gradient ("minigl", © Stripe, Inc.), by way of Kevin Hufnagl's standalone
+  port. See the file header for details.

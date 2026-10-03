@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import EuropaMark from "@/components/EuropaMark";
 
@@ -33,6 +33,8 @@ export default function SiteHeader() {
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(!isHome);
   const [menuOpen, setMenuOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Recomputed whenever the route changes: the header persists across
   // client-side navigations, so inner pages must reset it to solid here
@@ -53,17 +55,39 @@ export default function SiteHeader() {
     setMenuOpen(false);
   }, [pathname]);
 
+  // The overlay is fullscreen, so keyboard focus must stay on it (and the
+  // toggle, which sits above it as the close button) — otherwise Tab walks
+  // into the hidden page underneath. Focus moves in on open and back to the
+  // toggle on close if it was still inside.
   useEffect(() => {
     if (!menuOpen) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const raf = requestAnimationFrame(() => menuRef.current?.querySelector<HTMLElement>("a[href]")?.focus());
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = [toggleRef.current, ...(menuRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? [])].filter(
+        (el): el is HTMLElement => !!el
+      );
+      const idx = items.indexOf(document.activeElement as HTMLElement);
+      if (idx === -1 || (e.shiftKey && idx === 0) || (!e.shiftKey && idx === items.length - 1)) {
+        e.preventDefault();
+        items[e.shiftKey ? items.length - 1 : 0]?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
+    const menu = menuRef.current;
+    const toggle = toggleRef.current;
     return () => {
+      cancelAnimationFrame(raf);
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
+      const a = document.activeElement;
+      if (!a || a === document.body || menu?.contains(a)) toggle?.focus();
     };
   }, [menuOpen]);
 
@@ -118,9 +142,11 @@ export default function SiteHeader() {
 
         {/* Mobile hamburger */}
         <button
+          ref={toggleRef}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
+          aria-controls="mobile-nav"
           data-cursor="link"
           className="relative flex h-8 w-8 flex-col items-center justify-center gap-[5px] md:hidden"
         >
@@ -143,6 +169,11 @@ export default function SiteHeader() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
+            ref={menuRef}
+            id="mobile-nav"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { motion, type MotionValue } from "framer-motion";
 import { DESTINATIONS, getDestination, JOURNEY_MARKS, haversineKm } from "@/lib/journey";
 import { JOURNEY_ROUTE_ORDER, MAP_HEIGHT, MAP_WIDTH, projectLatLon } from "@/lib/europeGeo";
@@ -36,8 +36,9 @@ const ROUTE_REST = "rgba(195, 199, 206, 0.7)";
 // scroll window (roughly 22vh at this project's scroll length) that opens
 // inside the last moments of Amsterdam's dwell. Its fade-out runs a few
 // vh past JOURNEY_MARKS.outroStart, briefly overlapping EndSequence's own
-// fade-in — harmless, since EndSequence renders after it (same z-index)
-// and its bg-void steadily covers the map as it comes in.
+// fade-in. EndSequence renders after it (same z-index) and its bg-void
+// steadily covers the map as it comes in; it only starts taking pointer
+// events once it's half opaque, so the map stays clickable while visible.
 const FADE_IN_END = JOURNEY_MARKS.mapStart + 0.008;
 const HOLD_END = FADE_IN_END + 0.005;
 const FADE_OUT_END = HOLD_END + 0.007;
@@ -71,13 +72,27 @@ export default function InteractiveMap({
     return () => unsub();
   }, [progress]);
 
+  const mapRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  // Opened on demand it covers the whole viewport, so move focus onto the
+  // first pin (otherwise the next Tab lands on chrome behind/around it) and
+  // hand it back to the toggle when it closes from inside.
   useEffect(() => {
     if (!manuallyOpen) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setManuallyOpen(false);
     }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const raf = requestAnimationFrame(() => mapRef.current?.querySelector<HTMLElement>("button")?.focus());
+    const map = mapRef.current;
+    const toggle = toggleRef.current;
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKey);
+      const a = document.activeElement;
+      if (!a || a === document.body || map?.contains(a)) toggle?.focus({ preventScroll: true });
+    };
   }, [manuallyOpen]);
 
   const autoOpacity = scrollWindowOpacity(p);
@@ -99,6 +114,7 @@ export default function InteractiveMap({
   return (
     <>
       <motion.div
+        ref={mapRef}
         style={{ opacity, pointerEvents: interactive ? "auto" : "none" }}
         aria-hidden={!interactive}
         className="absolute inset-0 z-30 flex items-center justify-center bg-void"
@@ -208,6 +224,7 @@ export default function InteractiveMap({
       {/* Persistent toggle: a small, always-minimal way to reach the map
           without waiting to scroll into its window. */}
       <button
+        ref={toggleRef}
         onClick={() => setManuallyOpen((v) => !v)}
         aria-label={manuallyOpen ? "Close the map" : "Open the map"}
         aria-pressed={manuallyOpen}
